@@ -11,7 +11,6 @@ export default createRouter({
             path : "/",
             name : "Home",
             component : HomeView,
-            
         },
         {
             path : "/connexion",

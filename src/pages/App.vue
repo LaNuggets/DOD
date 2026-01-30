@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import Connexion from '@/components/Connexion.vue';
 import WelcomeHeader from '@/components/WelcomeHeader.vue';
+import HomeView from '../views/HomeView.vue';
 
 </script>
 
 <template>
+  <RouterView></RouterView>
 
-<!-- zonne a afficher a la connexion -->
-  <WelcomeHeader></WelcomeHeader>
+<!--    <HomeView></HomeView> -->
+  
+<!--  <Connexion></Connexion> -->
 
-  <Connexion></Connexion>
-
-<!-- Zonne a afficher conecté -->
 
 </template>
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+import { useStore } from '@/ts/store'
 
 interface Form {
   username: string,
@@ -16,6 +17,7 @@ const form : Form = {
   password : '',
 }
 
+const tokenStore = useStore()
 const loading = ref(false)
 const error = ref<string | null>(null)
 const success = ref(false)
@@ -50,6 +52,7 @@ const connection = async () => {
     console.log(data.token)
     console.log(data.admin)
     success.value = true
+    tokenStore.setToken(data.token)
     
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error during conection'

@@ -18,7 +18,6 @@ const form : Form = {
   password : '',
 }
 
-const tokenStore = useStore()
 const loading = ref(false)
 const error = ref<string | null>(null)
 const success = ref(false)
@@ -54,10 +53,6 @@ const connection = async () => {
     console.log(data.admin)
 
     success.value = true
-<<<<<<< HEAD:src/components/Connexion.vue
-    tokenStore.setToken(data.token)
-    
-=======
 	
 	// Put the token in the local storage
 	saveToken(data.token)
@@ -65,7 +60,6 @@ const connection = async () => {
 	// Redirect to home page
 	router.push({ path: '/' })
 
->>>>>>> main:src/components/Login.vue
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error during conection'
   } finally {

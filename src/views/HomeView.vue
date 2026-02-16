@@ -8,7 +8,7 @@ import ChannelBox from '@/components/ChannelBox.vue';
 <template>
 
   <ChannelList />
-  <ChannelBox />
+  <router-view />
 
 </template>
 

@@ -1,5 +1,6 @@
 import HomeView from "@/views/HomeView.vue";
 import LoginView from "@/views/LoginView.vue";
+import Message from "@/components/Message.vue"
 import NotFoundView from "@/views/NotFoundView.vue";
 import { loadToken } from "@/ts/saveload.ts";
 import { createRouter, createWebHistory} from "vue-router";
@@ -8,9 +9,16 @@ import CreateChannelView from "@/views/CreateChannelView.vue";
 // Set up the routes
 const routes = [
 		{
-            path : "/:",
+            path : "/",
             name : "Home",
             component : HomeView,
+			children: [
+				{
+					path: 'channel/:id',
+					name : "Channel Details",
+					component: Message
+				}
+			]
         },
         {
             path : "/login",
@@ -23,11 +31,6 @@ const routes = [
             name : "Channel",
             component : CreateChannelView
         },
-	    {
-			path: '/channel/:id',
-			name : "Channel Details",
-			component : HomeView
-		},
         {
             path: '/:pathMatch(.*)*',
             name : "Not Found !",

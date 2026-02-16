@@ -78,8 +78,9 @@ const deleteChannel = async (channelId: number, event: Event) => {
 }
 
 onMounted(() => {
-  fetchChannels()
-})
+  fetchChannels();
+});
+
 </script>
 
 <template>
@@ -114,6 +115,7 @@ onMounted(() => {
             <p class="users">{{ channel.users.length }} user(s)</p>
           </div>
         </RouterLink>
+
         <button
           class="delete-btn"
           @click="deleteChannel(channel.id, $event)"
@@ -142,11 +144,13 @@ onMounted(() => {
 /* CONTAINER PRINCIPAL */
 /* ============================= */
 .channel-list {
-  min-height: 100vh;
+  width: 100%;
   background: linear-gradient(to bottom, var(--sky-blue), white);
   font-family: 'Cinzel', serif;
   color: var(--black);
+  margin : 0;
   padding: 0;
+  border-bottom: 3px solid var(--gold);
 }
 
 /* TITRE */

@@ -7,7 +7,6 @@ import ChannelBox from '@/components/ChannelBox.vue';
 
 <template>
 
-  <WelcomeHeader />
   <ChannelList />
   <ChannelBox />
 

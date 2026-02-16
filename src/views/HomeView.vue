@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ChannelList from '@/components/ChannelList.vue';
 import ChannelBox from '@/components/ChannelBox.vue';
+import MessageRainbow from '@/components/MessageRainbow.vue';
 
 </script>
 
@@ -8,6 +9,7 @@ import ChannelBox from '@/components/ChannelBox.vue';
 
   <ChannelList />
   <ChannelBox />
+  <MessageRainbow />
 
 </template>
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import Connexion from '@/components/Connexion.vue';
+import Login from '@/components/Login.vue';
 </script>
 
 <template>
-	<Connexion></Connexion>
+	<Login></Login>
 </template>
 
 <style scoped></style>

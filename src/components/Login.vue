@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useStore } from '@/ts/store'
+import { saveToken } from '@/ts/saveload.ts';
+import router from "@/ts/router";
+import { ref, reactive } from 'vue';
 
 interface Form {
   username: string,
@@ -48,12 +49,23 @@ const connection = async () => {
     }
 
     const data: Response = await response.json()
-    
+	
     console.log(data.token)
     console.log(data.admin)
+
     success.value = true
+<<<<<<< HEAD:src/components/Connexion.vue
     tokenStore.setToken(data.token)
     
+=======
+	
+	// Put the token in the local storage
+	saveToken(data.token)
+	
+	// Redirect to home page
+	router.push({ path: '/' })
+
+>>>>>>> main:src/components/Login.vue
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error during conection'
   } finally {
@@ -87,10 +99,9 @@ const connection = async () => {
     <p v-if="error" class="error">{{ error }}</p>
     
     <button type="submit" :disabled="loading">
-      {{ loading ? 'loging...' : 'Login' }}
+		      {{ loading ? 'loging...' : 'Login' }}
     </button>
 
-    <p v-if="success" class="success">Loged sucefuly !</p>
   </form>
 </template>
 

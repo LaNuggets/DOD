@@ -36,9 +36,6 @@ const createChannel = async () => {
 
   try {
     const token = tokenStore.getToken()
-    if (!token) {
-      throw new Error('Authentication token not found. Please login first.')
-    }
 
     const requestBody: ChannelMetaData = {
       name: form.name.trim()

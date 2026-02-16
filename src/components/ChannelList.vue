@@ -15,6 +15,7 @@ const tokenStore = useStore()
 const channels = ref<Channel[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
+const deletingId = ref<number | null>(null)
 
 const fetchChannels = async () => {
   loading.value = true
@@ -42,6 +43,40 @@ const fetchChannels = async () => {
   }
 }
 
+const deleteChannel = async (channelId: number, event: Event) => {
+  event.preventDefault()
+  event.stopPropagation()
+  
+  if (!confirm('Are you sure you want to delete this channel?')) {
+    return
+  }
+
+  deletingId.value = channelId
+
+  try {
+    const token = tokenStore.getToken()
+    const response = await fetch(`https://edu.tardigrade.land/msg/protected/channel/${channelId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (!response.ok) {
+      const errorMsg = response.status === 401 
+        ? 'You do not have permission to delete this channel'
+        : `Error ${response.status}: Failed to delete channel`
+      throw new Error(errorMsg)
+    }
+
+    channels.value = channels.value.filter(c => c.id !== channelId)
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : 'Error deleting channel'
+  } finally {
+    deletingId.value = null
+  }
+}
+
 onMounted(() => {
   fetchChannels()
 })
@@ -58,28 +93,39 @@ onMounted(() => {
     </div>
 
     <div v-if="!loading && channels.length > 0" class="channels">
-      <RouterLink 
+      <div
         v-for="channel in channels"
         :key="channel.id"
-        :to="`/channel/${channel.id}`"
-        class="channel-item"
+        class="channel-item-wrapper"
       >
-        <div v-if="channel.img" class="channel-img">
-          <img :src="channel.img" :alt="channel.name" />
-        </div>
-        <div v-else class="channel-img placeholder">
-          <img src="../assets/Olympians.webp" alt="default channel image" />
-        </div>
-        <div class="channel-info">
-          <h3>{{ channel.name }}</h3>
-          <p class="creator">by {{ channel.creator }}</p>
-          <p class="users">{{ channel.users.length }} user(s)</p>
-        </div>
-      </RouterLink>
+        <RouterLink 
+          :to="`/channel/${channel.id}`"
+          class="channel-item"
+        >
+          <div v-if="channel.img" class="channel-img">
+            <img :src="channel.img" :alt="channel.name" />
+          </div>
+          <div v-else class="channel-img placeholder">
+            <img src="../assets/Olympians.webp" alt="default channel image" />
+          </div>
+          <div class="channel-info">
+            <h3>{{ channel.name }}</h3>
+            <p class="creator">by {{ channel.creator }}</p>
+            <p class="users">{{ channel.users.length }} user(s)</p>
+          </div>
+        </RouterLink>
+        <button
+          class="delete-btn"
+          @click="deleteChannel(channel.id, $event)"
+          :disabled="deletingId === channel.id"
+          title="Delete channel"
+        >
+          {{ deletingId === channel.id ? '...' : '🗑️' }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
-
 <style scoped>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
 

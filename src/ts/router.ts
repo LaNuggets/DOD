@@ -8,7 +8,7 @@ import CreateChannelView from "@/views/CreateChannelView.vue";
 // Set up the routes
 const routes = [
 		{
-            path : "/",
+            path : "/:",
             name : "Home",
             component : HomeView,
         },
@@ -19,10 +19,15 @@ const routes = [
             
         },
         {
-            path: '/protected/channel',
+            path: '/channel/create',
             name : "Channel",
             component : CreateChannelView
         },
+	    {
+			path: '/channel/:id',
+			name : "Channel Details",
+			component : HomeView
+		},
         {
             path: '/:pathMatch(.*)*',
             name : "Not Found !",

@@ -2,6 +2,7 @@ import HomeView from "@/views/HomeView.vue";
 import ConnexionView from "@/views/ConnexionView.vue";
 import NotFoundView from "@/views/NotFoundView.vue";
 import { createRouter, createWebHistory} from "vue-router";
+import CreateChannelView from "@/views/CreateChannelView.vue";
 
 export default createRouter({
     history : createWebHistory(),
@@ -16,6 +17,11 @@ export default createRouter({
             name : "Connexion",
             component : ConnexionView,
             
+        },
+        {
+            path: '/protected/channel',
+            name : "Channel",
+            component : CreateChannelView
         },
         {
             path: '/:pathMatch(.*)*',

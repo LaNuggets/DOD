@@ -71,7 +71,7 @@ const connection = async () => {
 <template>
   <form @submit.prevent="connection" class="login-form">
     <div>
-      <label>Email</label>
+      <label>Username : </label>
       <input 
         v-model="form.username" 
         type="text" 
@@ -81,7 +81,7 @@ const connection = async () => {
     </div>
 
     <div>
-      <label>Mot de passe</label>
+      <label>Password : </label>
       <input 
         v-model="form.password" 
         type="password" 

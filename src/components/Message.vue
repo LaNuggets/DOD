@@ -23,12 +23,20 @@ interface Message {
 
 let ws: WebSocket | null = null
 const tokenStore = useStore()
-
 const route = useRoute();
 const loading = ref(false)
 const error = ref<string | null>(null)
 const messages = ref<Message[]>([])
-
+const adding = ref(false)
+const showAddUser = ref(false)
+const showMembers = ref(false)
+const membersLoading = ref(false)
+const membersError = ref<string | null>(null)
+const channelUsers = ref<string[]>([])
+const channelCreator = ref<string | null>(null)
+const currentUser = ref<string | null>(null)
+const showInfo = ref(false)
+const infoText = ref('')
 async function loadMessage(id : string) {
     try {
         const token = tokenStore.getToken()

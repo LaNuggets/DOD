@@ -2,17 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/ts/store'
-
-interface ChannelMetaData {
-  name: string,
-  img?: string
-}
-
-interface CreateChannelResponse {
-  id: string
-  name: string
-  img?: string
-}
+import type { ChannelMetaData, CreateChannelResponse }  from '@/types/channel';
 
 const form: ChannelMetaData = {
   name: '',

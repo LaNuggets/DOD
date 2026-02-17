@@ -1,20 +1,9 @@
 <script setup lang="ts">
+import type { Message } from '@/types/message';
 
 defineProps<{
   data: Message
 }>()
-
-interface Content {
-    type: string,
-    value: string,
-}
-
-interface Message {
-    channel_id: number,
-    timestamp: Date,
-    author: string,
-    content: Content
-};
 
 </script>
 

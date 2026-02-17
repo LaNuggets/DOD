@@ -9,18 +9,8 @@ import AddUserModal from '@/modals/AddUserModal.vue'
 import InfoModal from '@/modals/InfoModal.vue'
 import MembersModal from '@/modals/MembersModal.vue'
 import router from '@/ts/router'
+import type { Content, Message } from '@/types/message';
 
-interface Content {
-    type: string,
-    value: string,
-}
-
-interface Message {
-    channel_id: number,
-    timestamp: Date,
-    author: string,
-    content: Content
-};
 
 let ws: WebSocket | null = null
 const tokenStore = useStore()

@@ -1,46 +1,88 @@
 <script setup lang="ts">
 
-import { ref } from "vue";
+import { ref, reactive, watch } from "vue";
 import { loadToken } from "@/ts/saveload.ts";
+import { useChannelStore } from '@/ts/channelStore';
+import type{ ChannelNewMetaData } from '@/types/channel';
+
+const channelStore = useChannelStore();
 
 const props = defineProps<{
   channelId: string
 }>();
 
-
 const showPopup = ref(false);
 const error = ref<string | null>(null);
-const success = ref(false);
+const token = loadToken();
 
-const form : ChannelNewMetaData = {
-  name : null,
-  img : null,
-  theme : {
-    "primary_color": null,
-    "primary_color_dark": null,
-    "accent_color": null,
-    "text_color": null,
-    "accent_text_color": null
-  },
+const baseTheme = {
+  primary_color: "#FFFFFF",
+  primary_color_dark: "#1C1C1C",
+  accent_color: "#FFD700",
+  secondary_accent: "#87CEEB",
+  text_color: "#1C1C1C",
+  accent_text_color: "#FFFFFF"
 };
 
-const submitForm = async ():void => {
+const form: ChannelNewMetaData = reactive({
+  name: null,
+  img: null,
+  theme: {}
+});
+
+const colorInputs = reactive({ ...form.theme });
+
+
+watch(showPopup, async (isOpen) => {
+  if (isOpen) {
+    await loadChannelData();
+  }
+});
+
+async function loadChannelData() {
+
+    try {
+        const resp = await fetch('https://edu.tardigrade.land/msg/protected/user/channels', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (!resp.ok) throw new Error(`Error ${resp.status}: Failed to fetch channels`)
+        const list = await resp.json()
+        const ch = list.find((ch: any) => ch.id === Number(props.channelId))
+        if (ch) {
+          form.name = ch.name;
+          form.img = ch.img;
+          if (ch.theme === null) {
+            form.theme = { ...baseTheme };
+            Object.assign(colorInputs, { ...baseTheme });
+          } else {
+            form.theme = { ...ch.theme };
+            Object.assign(colorInputs, { ...ch.theme });
+          }
+
+        }
+    } catch (e: unknown) {
+        error.value = e instanceof Error ? e.message : 'Error fetching API'
+    }
+}
+
+const submitForm = async () => {
 
 	error.value = null;
 
 	try {
-	    const requestBody: ChannelNewMetaData = form;
+      const requestBody: ChannelNewMetaData = {
+        name: form.name?.trim() || null,
+        img: form.img?.trim() || null,
+        theme: {
+          primary_color: colorInputs.primary_color.toUpperCase(),
+          primary_color_dark: colorInputs.primary_color_dark.toUpperCase(),
+          accent_color: colorInputs.accent_color.toUpperCase(),
+          text_color: colorInputs.text_color.toUpperCase(),
+          accent_text_color: colorInputs.accent_text_color.toUpperCase()
+        }
+      };
 
-		// Check if the fields are empty
-		requestBody.name = requestBody.name?.trim() || null;
-		requestBody.img = requestBody.img?.trim() || null;
-
-		Object.entries(requestBody.theme).forEach(([key, value]) => {
-		  requestBody.theme[key] = value?.trim() || null;
-		});
-
-
-		const token = loadToken();
 		const response = await fetch(`https://edu.tardigrade.land/msg/protected/channel/${props.channelId}/update_metadata`, {
 			method: 'PUT',
 			headers: {
@@ -54,6 +96,14 @@ const submitForm = async ():void => {
 		      const errorData = await response.json()
 			  throw new Error(errorData.message || `Erreur ${response.status}`)
 		}
+
+    channelStore.updateChannel({
+      id: Number(props.channelId),
+      name: requestBody.name,
+      img: requestBody.img,
+      theme: requestBody.theme
+    });
+
 		closePopup();
 
 	} catch (e: unknown) {
@@ -89,14 +139,14 @@ function closePopup() {
           <input type="img" v-model="form.img" />
         </div>
 
-        <div class="field">
-          <label>Change channel themes colors :</label>
-          <input type="text" v-model="form.theme.primary_color" />
-          <input type="text" v-model="form.theme.primary_color_dark" />
-          <input type="text" v-model="form.theme.accent_color" />
-          <input type="text" v-model="form.theme.text_color" />
-          <input type="text" v-model="form.theme.accent_text_color" />
-        </div>
+      <div class="field">
+        <label>Change channel theme colors :</label>
+        <input type="color" v-model="colorInputs.primary_color" />
+        <input type="color" v-model="colorInputs.primary_color_dark" />
+        <input type="color" v-model="colorInputs.accent_color"/>
+        <input type="color" v-model="colorInputs.text_color" />
+        <input type="color" v-model="colorInputs.accent_text_color" />
+      </div>
 
         <div class="buttons">
           <button @click="submitForm">Submit</button>

@@ -3,13 +3,9 @@ import { useRoute } from "vue-router";
 import { ref } from 'vue';
 import { useStore } from '@/ts/store'
 import { watch } from 'vue';
+import type { Content } from '@/types/message';
 
-interface Message {
-    type: string,
-    value: string,
-}
-
-const message : Message = { type: '', value: '' }
+const message : Content = { type: '', value: '' }
 const tokenStore = useStore()
 const route = useRoute();
 const id = ref(route.params.id as string);

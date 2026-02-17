@@ -2,16 +2,7 @@
 import { saveToken } from '@/ts/saveload.ts';
 import router from "@/ts/router";
 import { ref, reactive } from 'vue';
-
-interface Form {
-  username: string,
-  password: string,
-}
-
-interface Response {
-  token: string
-  admin: boolean
-}
+import type { Form, Response } from '@/types/login';
 
 const form : Form = {
   username : '',

@@ -87,7 +87,7 @@ onMounted(() => { fetchChannels() })
           <div class="channel-img">
             <img
               :src="channel.img || '/src/assets/Olympians.webp'"
-              :alt="channel.name"
+              :alt="channel.name ?? undefined"
             />
           </div>
           <span class="channel-name">{{ channel.name }}</span>

@@ -37,6 +37,7 @@ const channelCreator = ref<string | null>(null)
 const currentUser = ref<string | null>(null)
 const showInfo = ref(false)
 const infoText = ref('')
+
 async function loadMessage(id : string) {
     try {
         const token = tokenStore.getToken()
@@ -55,6 +56,7 @@ async function loadMessage(id : string) {
     }
 
     messages.value = await response.json()
+    messages.value.reverse()
 
     } catch (e: unknown) {
         error.value = e instanceof Error ? e.message : 'Error during conection'
@@ -70,7 +72,7 @@ const connect = (id : string) => {
     ws.onopen = () => console.log('✅ Connecté')
     ws.onmessage = (event) => {
         console.log(event.data)
-        messages.value.push(JSON.parse(event.data) as Message)
+        messages.value.unshift(JSON.parse(event.data) as Message)
     }
     ws.onclose = () => console.log('❌ Déconnecté')
     ws.onerror = (error) => console.error('Erreur:', error)

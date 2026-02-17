@@ -22,21 +22,13 @@ const showDeleteChannel = ref<number | null>(null)
 const fetchChannels = async () => {
   loading.value = true
   error.value = null
-
   try {
     const token = tokenStore.getToken()
-
     const response = await fetch('https://edu.tardigrade.land/msg/protected/user/channels', {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Authorization': `Bearer ${token}` }
     })
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: Failed to fetch channels`)
-    }
-
+    if (!response.ok) throw new Error(`Error ${response.status}: Failed to fetch channels`)
     channels.value = await response.json()
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error fetching channels'
@@ -54,23 +46,17 @@ const openDeleteConfirm = (channelId: number, event: Event) => {
 const deleteChannel = async (channelId: number) => {
   deletingId.value = channelId
   showDeleteChannel.value = null
-
   try {
     const token = tokenStore.getToken()
     const response = await fetch(`https://edu.tardigrade.land/msg/protected/channel/${channelId}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Authorization': `Bearer ${token}` }
     })
-
     if (!response.ok) {
-      const errorMsg = response.status === 401 
+      throw new Error(response.status === 401
         ? 'You do not have permission to delete this channel'
-        : `Error ${response.status}: Failed to delete channel`
-      throw new Error(errorMsg)
+        : `Error ${response.status}: Failed to delete channel`)
     }
-
     channels.value = channels.value.filter(c => c.id !== channelId)
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error deleting channel'
@@ -79,21 +65,16 @@ const deleteChannel = async (channelId: number) => {
   }
 }
 
-
-onMounted(() => {
-  fetchChannels();
-});
-
+onMounted(() => { fetchChannels() })
 </script>
 
 <template>
   <div class="channel-list">
-    
-    <p v-if="loading" class="loading">Loading channels...</p>
-    <p v-if="error" class="error">{{ error }}</p>
+    <p v-if="loading" class="status">Loading channels...</p>
+    <p v-if="error" class="status error">{{ error }}</p>
 
-    <div v-if="!loading && channels.length === 0" class="empty">
-      No Channels found. Create or join a channel to get started!
+    <div v-if="!loading && channels.length === 0" class="status empty">
+      No channels found. Create or join one to get started!
     </div>
 
     <div v-if="!loading && channels.length > 0" class="channels">
@@ -102,21 +83,14 @@ onMounted(() => {
         :key="channel.id"
         class="channel-item-wrapper"
       >
-        <RouterLink 
-          :to="`/channel/${channel.id}`"
-          class="channel-item"
-        >
-          <div v-if="channel.img" class="channel-img">
-            <img :src="channel.img" :alt="channel.name" />
+        <RouterLink :to="`/channel/${channel.id}`" class="channel-item">
+          <div class="channel-img">
+            <img
+              :src="channel.img || '/src/assets/Olympians.webp'"
+              :alt="channel.name"
+            />
           </div>
-          <div v-else class="channel-img placeholder">
-            <img src="../assets/Olympians.webp" alt="default channel image" />
-          </div>
-          <div class="channel-info">
-            <h3>{{ channel.name }}</h3>
-            <p class="creator">by {{ channel.creator }}</p>
-            <p class="users">{{ channel.users.length }} user(s)</p>
-          </div>
+          <span class="channel-name">{{ channel.name }}</span>
         </RouterLink>
 
         <button
@@ -125,9 +99,8 @@ onMounted(() => {
           :disabled="deletingId === channel.id"
           title="Delete channel"
         >
-          {{ deletingId === channel.id ? '...' : '🗑️' }}
+          {{ deletingId === channel.id ? '…' : '🗑️' }}
         </button>
-        
       </div>
     </div>
   </div>
@@ -135,126 +108,106 @@ onMounted(() => {
   <ConfirmModal
     v-if="showDeleteChannel !== null"
     :message="'Are you sure you want to delete this channel?'"
-    @confirm="deleteChannel(showDeleteChannel)"
+    @confirm="deleteChannel(showDeleteChannel!)"
     @close="showDeleteChannel = null"
   />
 </template>
-<style scoped>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
 
-:root {
-  --sky-blue: #cfe9ff;
-  --deep-sky: #87cfff;
+<style scoped>
+/* =========================================
+   VARIABLES
+   ========================================= */
+.channel-list {
   --gold: #d4af37;
   --gold-light: #f5d76e;
   --white-marble: #f8f8f8;
+  --sky: #dff0ff;
   --black: #111;
-}
 
-/* ============================= */
-/* CONTAINER PRINCIPAL */
-/* ============================= */
-.channel-list {
   width: 100%;
-  background: linear-gradient(to bottom, var(--sky-blue), white);
-  font-family: 'Cinzel', serif;
-  color: var(--black);
-  margin : 0;
-  padding: 0;
+  flex-shrink: 0;   /* ne compresse jamais la navbar */
+  background: linear-gradient(to bottom, var(--sky), var(--white-marble));
   border-bottom: 3px solid var(--gold);
+  font-family: 'Cinzel', serif;
 }
 
-/* TITRE */
-.channel-list h2 {
-  text-align: center;
-  padding: 25px 0;
-  font-size: 2.2rem;
-  letter-spacing: 3px;
-  color: var(--gold);
-  text-shadow: 0 0 10px rgba(212,175,55,0.5);
-}
-
-/* ============================= */
-/* BARRE HORIZONTALE DES COLONNES */
-/* ============================= */
+/* =========================================
+   BARRE DE CHANNELS (scroll horizontal)
+   ========================================= */
 .channels {
   display: flex;
-  gap: 25px;
+  gap: 20px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 20px 30px;
-  background: linear-gradient(to bottom, white, #f3f3f3);
-  border-top: 3px solid var(--gold);
-  border-bottom: 3px solid var(--gold);
+  padding: 16px 24px;
   scroll-behavior: smooth;
 }
 
-/* Scrollbar dorée */
-.channels::-webkit-scrollbar {
-  height: 10px;
-}
-
+.channels::-webkit-scrollbar { height: 6px; }
 .channels::-webkit-scrollbar-thumb {
   background: linear-gradient(to right, var(--gold), var(--gold-light));
   border-radius: 10px;
 }
 
-/* ============================= */
-/* MINI COLONNES */
-/* ============================= */
-.channel-item {
-  flex: 0 0 90px;
-  height: 100px;
-  background: linear-gradient(to bottom, var(--white-marble), #eaeaea);
-  border-radius: 60px 60px 15px 15px;
-  border: 3px solid var(--gold);
-  text-decoration: none;
-  color: var(--black);
+/* =========================================
+   CHANNEL ITEM
+   ========================================= */
+.channel-item-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+  gap: 6px;
+  flex-shrink: 0;
 }
 
-/* Ligne des colonnes */
+.channel-item {
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--black);
+  padding: 10px 6px 8px;
+  border-radius: 50px 50px 12px 12px;
+  border: 2px solid var(--gold);
+  background: linear-gradient(to bottom, var(--white-marble), #e8e8e8);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Stries de colonne antique */
 .channel-item::before {
-  content: "";
+  content: '';
   position: absolute;
-  top: 0;
-  left: 50%;
-  width: 70%;
-  height: 100%;
-  transform: translateX(-50%);
+  inset: 0;
   background: repeating-linear-gradient(
     to right,
-    rgba(0,0,0,0.04),
-    rgba(0,0,0,0.04) 3px,
-    transparent 3px,
-    transparent 9px
+    rgba(0,0,0,0.03) 0px,
+    rgba(0,0,0,0.03) 2px,
+    transparent 2px,
+    transparent 8px
   );
-  border-radius: 60px 60px 15px 15px;
   pointer-events: none;
 }
 
-/* Hover style */
 .channel-item:hover {
-  transform: translateY(-6px) scale(1.08);
-  box-shadow: 0 12px 25px rgba(212,175,55,0.6);
+  transform: translateY(-5px) scale(1.06);
+  box-shadow: 0 10px 22px rgba(212, 175, 55, 0.5);
 }
 
-/* ============================= */
-/* IMAGE */
-/* ============================= */
+/* =========================================
+   IMAGE
+   ========================================= */
 .channel-img {
-  width: 55px;
-  height: 55px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid var(--gold);
-  margin-bottom: 8px;
+  flex-shrink: 0;
   z-index: 1;
 }
 
@@ -264,43 +217,53 @@ onMounted(() => {
   object-fit: cover;
 }
 
-/* ============================= */
-/* TEXTE SIMPLIFIÉ */
-/* ============================= */
-.channel-info {
+/* =========================================
+   NOM DU CHANNEL
+   ========================================= */
+.channel-name {
+  font-size: 0.65rem;
   text-align: center;
-  z-index: 1;
-}
-
-.channel-info h3 {
-  font-size: 0.7rem;
-  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 70px;
+  max-width: 68px;
+  z-index: 1;
 }
 
-.creator,
-.users {
-  display: none;
+/* =========================================
+   BOUTON SUPPRESSION
+   ========================================= */
+.delete-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
 }
 
-/* ============================= */
-/* MESSAGES */
-/* ============================= */
-.loading,
-.error,
-.empty {
+.delete-btn:hover:not(:disabled) {
+  opacity: 1;
+  border-color: #e74c3c;
+}
+
+.delete-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+/* =========================================
+   ÉTATS
+   ========================================= */
+.status {
   text-align: center;
-  padding: 20px;
-}
-.channel-list {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 10;
+  padding: 12px 20px;
+  font-size: 0.85rem;
+  color: #666;
 }
 
+.status.error { color: #c0392b; }
+.status.empty { color: #999; font-style: italic; }
 </style>

@@ -99,4 +99,74 @@ const connection = async () => {
   </form>
 </template>
 
-<style scoped></style>
+<style scoped>
+.login-form {
+  font-family: 'Cinzel', serif;
+  color: var(--black);
+  background: linear-gradient(to bottom, var(--white-marble), var(--sky-blue));
+  border: 3px solid var(--gold);
+  border-radius: 15px;
+  max-width: 400px;
+  margin: 120px auto;
+  padding: 30px 40px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  text-align: center;
+}
+
+.login-form div {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.login-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 2px solid var(--gold);
+  border-radius: 25px;
+  background: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--gold-light);
+  box-shadow: 0 0 10px rgba(212,175,55,0.6);
+}
+
+.login-form .error {
+  color: red;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.login-form button {
+  background: linear-gradient(to bottom, var(--gold-light), var(--gold));
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: bold;
+  padding: 10px 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.login-form button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(212,175,55,0.6);
+}
+
+.login-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>

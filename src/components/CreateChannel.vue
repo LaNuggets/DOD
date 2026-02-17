@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useStore } from '@/ts/store'
 
 interface ChannelMetaData {
@@ -19,6 +20,7 @@ const form: ChannelMetaData = {
 }
 
 const tokenStore = useStore()
+const router = useRouter()
 const loading = ref(false)
 const error = ref<string | null>(null)
 const success = ref(false)
@@ -63,9 +65,7 @@ const createChannel = async () => {
     const data: CreateChannelResponse = await response.json()
     createdChannel.value = data
     success.value = true
-    
-    form.name = ''
-    form.img = ''
+    router.push({ name: 'Home' })
     
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error creating channel'

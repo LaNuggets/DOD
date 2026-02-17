@@ -15,9 +15,12 @@ const routes = [
             component : HomeView,
 			children: [
 				{
-					path: 'channel/:id',
+					path: 'channel/:id/:id2?',
 					name : "channel-details",
-					component: Message
+					components: {
+						default: Message, // Left when split
+						secondary: Message // right when split
+					}
 				}
 			]
         },

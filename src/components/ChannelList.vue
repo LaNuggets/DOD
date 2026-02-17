@@ -70,6 +70,8 @@ const deleteChannel = async (channelId: number) => {
   }
 }
 
+const emit = defineEmits<{ 'open-split': [id: string] }>()
+
 // Attach listener when the doom is fully charged
 watch(channelsRef, (el) => {
   if (el) {
@@ -104,6 +106,7 @@ onUnmounted(() => {
         v-for="channel in channels"
         :key="channel.id"
         class="channel-item-wrapper"
+        @contextmenu.prevent="emit('open-split', String(channel.id))"
       >
         <RouterLink :to="`/channel/${channel.id}`" class="channel-item">
           <div class="channel-img">

@@ -2,7 +2,7 @@
 import MessageRainbow from '@/components/MessageRainbow.vue';
 import ModifyChannel from '@/components/ModifyChannel.vue';
 import { useRoute } from 'vue-router';
-import { watch, onMounted, ref, onUnmounted} from 'vue';
+import { watch, onMounted, ref, onUnmounted, computed} from 'vue';
 import MessageBox from './MessageBox.vue';
 import { useStore } from '@/ts/store';
 import AddUserModal from '@/modals/AddUserModal.vue'
@@ -16,7 +16,12 @@ let ws: WebSocket | null = null
 const tokenStore = useStore()
 const route = useRoute();
 
-const channelId = ref(route.params.id as string);
+const props = defineProps<{ forcedChannelId?: string }>()
+
+// if there is a props use it, otherwise, use url param
+const channelId = computed(() =>
+  props.forcedChannelId ?? route.params.id as string
+)
 
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -71,12 +76,14 @@ onMounted(() => {
 });
 
 watch(
-	() => route.params.id as string,
-	(newId) => {
-		channelId.value = newId as string;
-		loadMessage(newId)
-		connect(newId)
-	}
+  () => channelId.value,
+  (newId, oldId) => {
+    if (!newId || newId === oldId) return
+    messages.value = []
+    ws?.close()
+    loadMessage(newId)
+    connect(newId)
+  }
 )
 
 onUnmounted(() => ws?.close())
@@ -96,7 +103,7 @@ const getUsernameFromToken = (token: string | null) => {
 }
 
 const openMembers = async () => {
-    const id = route.params.id as string
+    const id = channelId.value
     if (!id) return
     membersLoading.value = true
     membersError.value = null
@@ -122,7 +129,7 @@ const openMembers = async () => {
 }
 
 const addUser = async (username: string) => {
-    const id = route.params.id as string
+    const id = channelId.value
     if (!id) return
     adding.value = true
     error.value = null
@@ -194,7 +201,7 @@ const doBanUser = async (username: string) => {
     </div>
 
     <!-- Input fixé en bas -->
-    <MessageRainbow />
+    <MessageRainbow :channel-id="channelId" />
 
     <AddUserModal v-if="showAddUser" @confirm="addUser" @close="showAddUser = false" />
     <MembersModal v-if="showMembers" :users="channelUsers" :currentUser="currentUser" :creator="channelCreator" @ban="doBanUser" @quit="doBanUser" @close="showMembers = false" />

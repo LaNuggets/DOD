@@ -1,19 +1,15 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { ref } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useStore } from '@/ts/store'
-import { watch } from 'vue';
 import type { Content } from '@/types/message';
 
 const message : Content = { type: '', value: '' }
 const tokenStore = useStore()
 const route = useRoute();
-const id = ref(route.params.id as string);
+const props = defineProps<{ channelId?: string }>()
+const id = computed(() => props.channelId ?? route.params.id as string)
 
-watch(
-    () => route.params.id as string,
-    (newId) => { id.value = newId }
-)
 
 const loading = ref(false)
 const error = ref<string | null>(null)

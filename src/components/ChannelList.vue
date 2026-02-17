@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import ConfirmModal from '@/modals/ConfirmModal.vue'
 import { useStore } from '@/ts/store'
 
 interface Channel {
@@ -16,6 +17,7 @@ const channels = ref<Channel[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 const deletingId = ref<number | null>(null)
+const showDeleteChannel = ref<number | null>(null)
 
 const fetchChannels = async () => {
   loading.value = true
@@ -43,15 +45,15 @@ const fetchChannels = async () => {
   }
 }
 
-const deleteChannel = async (channelId: number, event: Event) => {
+const openDeleteConfirm = (channelId: number, event: Event) => {
   event.preventDefault()
   event.stopPropagation()
-  
-  if (!confirm('Are you sure you want to delete this channel?')) {
-    return
-  }
+  showDeleteChannel.value = channelId
+}
 
+const deleteChannel = async (channelId: number) => {
   deletingId.value = channelId
+  showDeleteChannel.value = null
 
   try {
     const token = tokenStore.getToken()
@@ -76,6 +78,7 @@ const deleteChannel = async (channelId: number, event: Event) => {
     deletingId.value = null
   }
 }
+
 
 onMounted(() => {
   fetchChannels();
@@ -118,15 +121,23 @@ onMounted(() => {
 
         <button
           class="delete-btn"
-          @click="deleteChannel(channel.id, $event)"
+          @click="openDeleteConfirm(channel.id, $event)"
           :disabled="deletingId === channel.id"
           title="Delete channel"
         >
           {{ deletingId === channel.id ? '...' : '🗑️' }}
         </button>
+        
       </div>
     </div>
   </div>
+
+  <ConfirmModal
+    v-if="showDeleteChannel !== null"
+    :message="'Are you sure you want to delete this channel?'"
+    @confirm="deleteChannel(showDeleteChannel)"
+    @close="showDeleteChannel = null"
+  />
 </template>
 <style scoped>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
@@ -284,5 +295,4 @@ onMounted(() => {
   text-align: center;
   padding: 20px;
 }
-
 </style>

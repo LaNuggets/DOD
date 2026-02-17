@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import ConfirmModal from '@/modals/ConfirmModal.vue'
 import type { Channel }  from '@/types/channel';
 import { useStore } from '@/ts/store'
@@ -13,7 +13,14 @@ const error = ref<string | null>(null)
 const deletingId = ref<number | null>(null)
 const showDeleteChannel = ref<number | null>(null)
 
-
+const channelsRef = ref<HTMLElement | null>(null)
+// Avtivate horizontal scroll
+const handleWheel = (e: WheelEvent) => {
+  if (e.deltaY !== 0) {
+    e.preventDefault()
+    channelsRef.value!.scrollLeft += e.deltaY
+  }
+}
 
 const fetchChannels = async () => {
   loading.value = true
@@ -63,7 +70,24 @@ const deleteChannel = async (channelId: number) => {
   }
 }
 
-onMounted(() => { fetchChannels() })
+// Attach listener when the doom is fully charged
+watch(channelsRef, (el) => {
+  if (el) {
+    el.addEventListener('wheel', handleWheel, { passive: false })
+  }
+})
+
+onMounted(() => {
+  fetchChannels()
+  // Active horizontal scroll
+  channelsRef.value?.addEventListener('wheel', handleWheel, { passive: false })
+  })
+
+onUnmounted(() => {
+  // Desactive horizontal scroll
+  channelsRef.value?.removeEventListener('wheel', handleWheel)
+})
+
 </script>
 
 <template>
@@ -75,7 +99,7 @@ onMounted(() => { fetchChannels() })
       No channels found. Create or join one to get started!
     </div>
 
-    <div v-if="!loading && channels.length > 0" class="channels">
+    <div v-if="!loading && channels.length > 0" class="channels" ref="channelsRef">
       <div
         v-for="channel in channels"
         :key="channel.id"
@@ -139,6 +163,14 @@ onMounted(() => { fetchChannels() })
   overflow-y: hidden;
   padding: 16px 24px;
   scroll-behavior: smooth;
+  
+  /* For firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) var(--white-marble);
+
+  white-space: nowrap;
+  /* Scroll for mobile */
+  -webkit-overflow-scrolling: touch;
 }
 
 .channels::-webkit-scrollbar { height: 6px; }

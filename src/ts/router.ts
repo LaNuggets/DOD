@@ -47,17 +47,43 @@ const router = createRouter({
 
 export default router
 
+/**
+ * Check if the current user token is valid.
+ *
+ * @param {string} token - The user current token.
+ * @return {bool} True if the token is valid, else false.
+ */
+const isTokenValid = (token: string): bool => {
+
+	if(!token)
+		return false;
+
+	const response = fetch("https://edu.tardigrade.land/msg/protected/extend_session", {
+      method: 'POST',
+		headers: {
+			'Authorization': `Bearer ${token}`,
+			'Content-Type': 'application/json'
+		},
+    })
+
+	if (response.status === 401)
+		return false;
+	
+	return true;
+}
+
+
 // Safe guard, cant access other pages if your not connected
 router.beforeEach((to, from) => {
 
-	// If there is a token, the user is connected
-	let token = loadToken()
-	if(!token && to.name !== 'Login') {
-		return { name : 'Login' }
+	// If there is a token and is valid, the user is connected
+	let token = loadToken();
+	if(!isTokenValid(token) && to.name !== 'Login') {
+		return { name : 'Login' };
 	}
 
 	// If the user is already login redirect to home page
 	if(token && to.name === 'Login') {
-		return { name: 'Home'}
+		return { name: 'Home'};
 	}
 })

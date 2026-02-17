@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import ChannelList from '@/components/ChannelList.vue';
 import ChannelBox from '@/components/ChannelBox.vue';
-import MessageRainbow from '@/components/MessageRainbow.vue';
 
 </script>
 
@@ -10,7 +9,6 @@ import MessageRainbow from '@/components/MessageRainbow.vue';
   <ChannelList />
   <ChannelBox />
   <router-view />
-  <MessageRainbow />
 
 </template>
 

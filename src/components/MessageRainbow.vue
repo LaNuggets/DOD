@@ -24,7 +24,16 @@ const error = ref<string | null>(null)
 const postMessage = async () => {
 
     // Define the image type
-    message.type = "Text";
+    const imgRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
+    if (imgRegex.test(message.value)){
+        message.type = "Image";
+    }
+    else {
+        message.type = "Text";
+    }
+    console.log(message)
+
+    // Verify the user is conected to a chanel
     if (id == undefined) {
         error.value = "You'r curently outside a chanel you c'ant post message !"
         return
@@ -71,12 +80,11 @@ const postMessage = async () => {
                 placeholder="message..."
             />
         </div>
-        
-        <p v-if="error" class="error">{{ error }}</p>
-    
         <button type="submit" :disabled="loading">
 		      {{ loading ? 'Posting...' : 'Post' }}
         </button>
+        
+        <p v-if="error" class="error">{{ error }}</p>
     </form>
 </template>
 

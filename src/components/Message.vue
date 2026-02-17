@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+import MessageRainbow from '@/components/MessageRainbow.vue';
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -12,6 +12,7 @@ console.log("Channel ID:", channelId)
 <template>
 
 <h1>Hi</h1>
+<MessageRainbow />
 
 </template>
 

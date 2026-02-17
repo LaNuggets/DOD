@@ -3,17 +3,17 @@ import { ref, onMounted, computed } from 'vue'
 import ConfirmModal from '@/modals/ConfirmModal.vue'
 import type { Channel }  from '@/types/channel';
 import { useStore } from '@/ts/store'
+import { useChannelStore } from '@/ts/channelStore';
 
 const tokenStore = useStore()
-// const channels = ref<Channel[]>([])
+const channelStore = useChannelStore();
 const channels = computed(() => channelStore.channels);
 const loading = ref(false)
 const error = ref<string | null>(null)
 const deletingId = ref<number | null>(null)
 const showDeleteChannel = ref<number | null>(null)
-import { useChannelStore } from '@/ts/channelStore';
 
-const channelStore = useChannelStore();
+
 
 const fetchChannels = async () => {
   loading.value = true
@@ -25,7 +25,6 @@ const fetchChannels = async () => {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     if (!response.ok) throw new Error(`Error ${response.status}: Failed to fetch channels`)
-    // channels.value = await response.json()
     const fetchedChannels = (await response.json()) as Channel[];
     channelStore.setChannels(fetchedChannels);
 
@@ -56,7 +55,6 @@ const deleteChannel = async (channelId: number) => {
         ? 'You do not have permission to delete this channel'
         : `Error ${response.status}: Failed to delete channel`)
     }
-    // channels.value = channels.value.filter(c => c.id !== channelId)
     channelStore.removeChannel(channelId);
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error deleting channel'

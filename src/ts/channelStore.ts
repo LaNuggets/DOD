@@ -10,6 +10,7 @@ export const useChannelStore = defineStore('channelStore', () => {
       channels.value = newChannels;
     }
 
+    // Can update one or more value, but need at least an id
     const updateChannel = (updated: Partial<Channel> & { id: number }) => {
       const ch = channels.value.find(c => c.id === updated.id);
       if (ch) {

@@ -5,7 +5,7 @@ defineProps<{
 }>()
 
 interface Content {
-    type: string, // Image or Text
+    type: string,
     value: string,
 }
 

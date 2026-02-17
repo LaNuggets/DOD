@@ -2,6 +2,7 @@ import HomeView from "@/views/HomeView.vue";
 import LoginView from "@/views/LoginView.vue";
 import Message from "@/components/Message.vue"
 import NotFoundView from "@/views/NotFoundView.vue";
+import ModifyChannel from "@/components/ModifyChannel.vue";
 import { loadToken } from "@/ts/saveload.ts";
 import { createRouter, createWebHistory} from "vue-router";
 import CreateChannelView from "@/views/CreateChannelView.vue";
@@ -15,7 +16,7 @@ const routes = [
 			children: [
 				{
 					path: 'channel/:id',
-					name : "Channel Details",
+					name : "channel-details",
 					component: Message
 				}
 			]
@@ -30,6 +31,11 @@ const routes = [
             path: '/channel/create',
             name : "Channel",
             component : CreateChannelView
+        },
+	    {
+            path: '/channel/modify/:id',
+            name : "Channel modification",
+            component : ModifyChannel
         },
         {
             path: '/:pathMatch(.*)*',

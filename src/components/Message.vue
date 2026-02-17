@@ -6,19 +6,19 @@ import { watch, onMounted} from 'vue';
 const route = useRoute();
 
 
-function loadMessage(id) {
+function loadMessage(id : string) {
 	console.log("Channel ID:", id);
 	// for you my kyky
 }
 
 onMounted(() => {
-	loadMessage(route.params.id);
+	loadMessage(route.params.id as string);
 });
 
 
 // Load new id on url change.
 watch(
-	() => route.params.id,
+	() => route.params.id as string,
 	(newId) => {
 		loadMessage(newId)
 	}

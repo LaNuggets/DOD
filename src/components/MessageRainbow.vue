@@ -2,6 +2,7 @@
 import { useRoute } from "vue-router";
 import { ref } from 'vue';
 import { useStore } from '@/ts/store'
+import { watch } from 'vue';
 
 interface Message {
     type: string, // Image or Text
@@ -16,7 +17,15 @@ const message : Message = {
 const tokenStore = useStore()
 
 const route = useRoute();
-const id = route.params.id as string;
+const id = ref(route.params.id as string);
+
+// Load new id on url change.
+watch(
+	() => route.params.id as string,
+	(newId) => {
+		id.value = newId
+	}
+)
 
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -31,10 +40,9 @@ const postMessage = async () => {
     else {
         message.type = "Text";
     }
-    console.log(message)
 
     // Verify the user is conected to a chanel
-    if (id == undefined) {
+    if (id.value == undefined) {
         error.value = "You'r curently outside a chanel you c'ant post message !"
         return
     }
@@ -45,7 +53,7 @@ const postMessage = async () => {
         const requestBody: Message = message
         const token = tokenStore.getToken()
     
-        const response = await fetch("https://edu.tardigrade.land/msg/protected/channel/"+ id +"/message", {
+        const response = await fetch("https://edu.tardigrade.land/msg/protected/channel/"+ id.value +"/message", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

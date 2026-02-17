@@ -9,6 +9,7 @@ import MessageRainbow from '@/components/MessageRainbow.vue';
 
   <ChannelList />
   <ChannelBox />
+  <router-view />
   <MessageRainbow />
 
 </template>

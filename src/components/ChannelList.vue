@@ -284,5 +284,12 @@ onMounted(() => {
   text-align: center;
   padding: 20px;
 }
+.channel-list {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+}
 
 </style>

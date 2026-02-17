@@ -84,8 +84,8 @@ onUnmounted(() => ws?.close())
 
 <template>
 
-<div>
-    <p>{{ loading ? 'Loading messages history ...' : 'Messages' }}</p>
+<div class="chat-content">
+    <p>{{ loading ? 'Loading messages history ...' : '' }}</p>
     <p v-if="error" class="error">{{ error }}</p>
     <div v-else v-for="message in messages" > 
         <MessageBox :data="message"/>
@@ -95,4 +95,11 @@ onUnmounted(() => ws?.close())
 
 </template>
 
-<style scoped></style>
+<style scoped>
+.chat-content {
+  margin-top: 150px; 
+  margin-bottom: 100px; 
+  overflow-y: auto;
+  height: calc(100vh - 250px);
+}
+</style>

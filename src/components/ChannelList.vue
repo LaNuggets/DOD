@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import ConfirmModal from '@/modals/ConfirmModal.vue'
 import CreateChannelModal from '@/modals/CreateChannelModal.vue'
 import type { Channel } from '@/types/channel'
@@ -14,6 +14,15 @@ const error = ref<string | null>(null)
 const deletingId = ref<number | null>(null)
 const showDeleteChannel = ref<number | null>(null)
 const showCreateChannel = ref(false)
+
+const channelsRef = ref<HTMLElement | null>(null)
+// Avtivate horizontal scroll
+const handleWheel = (e: WheelEvent) => {
+  if (e.deltaY !== 0) {
+    e.preventDefault()
+    channelsRef.value!.scrollLeft += e.deltaY
+  }
+}
 
 const fetchChannels = async () => {
   loading.value = true
@@ -66,7 +75,24 @@ const onChannelCreated = async () => {
   await fetchChannels()
 }
 
-onMounted(() => { fetchChannels() })
+const emit = defineEmits<{ 'open-split': [id: string] }>()
+
+// Attach listener when the doom is fully charged
+watch(channelsRef, (el) => {
+  if (el) {
+    el.addEventListener('wheel', handleWheel, { passive: false })
+  }
+})
+
+onMounted(() => {
+  fetchChannels()
+  channelsRef.value?.addEventListener('wheel', handleWheel, { passive: false })
+  })
+
+onUnmounted(() => {
+  channelsRef.value?.removeEventListener('wheel', handleWheel)
+})
+
 </script>
 
 <template>
@@ -74,12 +100,16 @@ onMounted(() => { fetchChannels() })
     <p v-if="loading" class="status">Loading channels...</p>
     <p v-if="error" class="status error">{{ error }}</p>
 
-    <div v-if="!loading" class="channels">
-      <!-- Channels existants -->
+    <div v-if="!loading && channels.length === 0" class="status empty">
+      No channels found. Create or join one to get started!
+    </div>
+
+    <div v-if="!loading && channels.length > 0" class="channels" ref="channelsRef">
       <div
         v-for="channel in channels"
         :key="channel.id"
         class="channel-item-wrapper"
+        @contextmenu.prevent="emit('open-split', String(channel.id))"
       >
         <RouterLink :to="`/channel/${channel.id}`" class="channel-item">
           <div class="channel-img">
@@ -161,6 +191,14 @@ onMounted(() => { fetchChannels() })
   padding: 16px 24px;
   scroll-behavior: smooth;
   align-items: flex-start;
+  
+  /* For firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) var(--white-marble);
+
+  white-space: nowrap;
+  /* Scroll for mobile */
+  -webkit-overflow-scrolling: touch;
 }
 
 .channels::-webkit-scrollbar { height: 6px; }

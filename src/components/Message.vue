@@ -32,21 +32,26 @@ const currentUser = ref<string | null>(null)
 const showInfo = ref(false)
 const infoText = ref('')
 
+
 async function loadMessage(id : string) {
     try {
         const token = tokenStore.getToken()
         const response = await fetch('https://edu.tardigrade.land/msg/protected/channel/'+ id +'/messages/0', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.message || `Erreur ${response.status}`)
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         }
-        messages.value = await response.json()
+    })
+
+    if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || `Erreur ${response.status}`)
+    }
+
+    messages.value = await response.json()
+    messages.value.reverse()
+
     } catch (e: unknown) {
         error.value = e instanceof Error ? e.message : 'Error during conection'
     } finally {
@@ -59,7 +64,8 @@ const connect = (id : string) => {
     ws = new WebSocket('https://edu.tardigrade.land/msg/ws/channel/'+id+'/token/'+token)
     ws.onopen = () => console.log('✅ Connecté')
     ws.onmessage = (event) => {
-        messages.value.push(JSON.parse(event.data) as Message)
+        console.log(event.data)
+        messages.value.unshift(JSON.parse(event.data) as Message)
     }
     ws.onclose = () => console.log('❌ Déconnecté')
     ws.onerror = (error) => console.error('Erreur:', error)

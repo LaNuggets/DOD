@@ -1,0 +1,272 @@
+/* ============================================================
+   BASE.CSS — DOD Global Design System
+   Importé une fois dans main.ts, disponible partout.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Montserrat:wght@300;500&display=swap');
+
+/* ── Reset minimal ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Variables globales ── */
+:root {
+  --gold:         #d4af37;
+  --gold-light:   #f5d76e;
+  --gold-dark:    #c9a227;
+  --white-marble: #f8f8f8;
+  --sky:          #dff0ff;
+  --sky-blue:     #cfe9ff;
+  --black:        #111111;
+  --text-muted:   #666666;
+  --error:        #c0392b;
+  --error-bg:     #fff0f0;
+  --success:      #27ae60;
+
+  --font-primary: 'Cinzel', serif;
+  --font-body:    'Montserrat', sans-serif;
+
+  --radius-sm:    6px;
+  --radius-md:    12px;
+  --radius-lg:    25px;
+  --radius-full:  50%;
+
+  --shadow-sm:    0 2px 5px rgba(0, 0, 0, 0.08);
+  --shadow-md:    0 4px 10px rgba(212, 175, 55, 0.3);
+  --shadow-lg:    0 10px 22px rgba(212, 175, 55, 0.5);
+  --shadow-modal: 0 20px 50px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(212, 175, 55, 0.15);
+
+  --transition:   all 0.25s ease;
+}
+
+html, body, #app {
+  height: 100%;
+  font-family: var(--font-primary);
+  color: var(--black);
+  background: var(--white-marble);
+}
+
+/* ── Bouton de base (classe utilitaire réutilisable) ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 22px;
+  font-family: var(--font-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition);
+  border: 2px solid transparent;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Variantes */
+.btn-primary {
+  background: linear-gradient(to bottom, var(--gold-light), var(--gold));
+  color: #5a3e00;
+  border: none;
+  box-shadow: 0 3px 8px rgba(212, 175, 55, 0.4);
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(to bottom, #fce47c, var(--gold-dark));
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: linear-gradient(to bottom, #fff, #ebebeb);
+  color: var(--black);
+  border-color: var(--gold);
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: linear-gradient(to bottom, #fff, #f8f8f8);
+  border-color: var(--gold-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: #ccc;
+}
+.btn-ghost:hover:not(:disabled) {
+  border-color: #aaa;
+  color: #333;
+}
+
+.btn-danger {
+  background: linear-gradient(to bottom, #e74c3c, var(--error));
+  color: white;
+  border: none;
+  box-shadow: 0 3px 8px rgba(192, 57, 43, 0.35);
+}
+.btn-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(192, 57, 43, 0.45);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ── Input de base ── */
+.input-base {
+  width: 100%;
+  padding: 10px 16px;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  color: var(--black);
+  background: var(--white-marble);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius-lg);
+  outline: none;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.input-base:focus {
+  border-color: var(--gold-light);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+  background: white;
+}
+.input-base::placeholder {
+  color: #bbb;
+  font-style: italic;
+}
+
+/* ── Modal de base ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeIn 0.18s ease;
+}
+
+.modal-card {
+  background: linear-gradient(160deg, #fff 60%, #fdf6e3);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius-md);
+  padding: 28px 32px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-modal);
+  font-family: var(--font-primary);
+  color: var(--black);
+  animation: modalIn 0.2s ease;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 1.5px;
+  flex: 1;
+}
+
+.modal-icon { font-size: 1.2rem; }
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 16px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.modal-body {
+  padding: 4px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Champ formulaire ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: #444;
+  text-transform: uppercase;
+}
+
+/* ── Messages d'état ── */
+.error-text {
+  color: var(--error);
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  background: var(--error-bg);
+  border-left: 3px solid var(--error);
+  border-radius: 4px;
+}
+
+.close-x {
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  color: #999;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  line-height: 1;
+  transition: color 0.15s, background 0.15s;
+}
+.close-x:hover { color: var(--black); background: rgba(212, 175, 55, 0.12); }
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Spinner ── */
+.spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: var(--black);
+  border-radius: var(--radius-full);
+  animation: spin 0.7s linear infinite;
+}

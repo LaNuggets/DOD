@@ -1,138 +1,128 @@
 <script setup lang="ts">
-import ModifyMessage from '@/modals/ModifyMessage.vue';
-import { useStore } from '@/ts/store';
-import { ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { useChannelStore } from '@/ts/channelStore';
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import ModifyMessage from '@/modals/ModifyMessage.vue'
+import { useStore } from '@/ts/store'
+import { useChannelStore } from '@/ts/channelStore'
+import { getUsernameFromToken } from '@/ts/saveload'
+import { apiModerateMessage } from '@/ts/api'
+import type { Message } from '@/types/messageType'
 
-
-defineProps<{
-  data: Message
-}>()
-
-interface Content {
-    type: string,
-    value: string,
-}
-
-interface Message {
-    channel_id: number,
-    timestamp: Date,
-    author: string,
-    content: Content
-};
+const props = defineProps<{ data: Message }>()
 
 const tokenStore = useStore()
+const route = useRoute()
+const channelStore = useChannelStore()
+
+const channelId = computed(() => route.params.id as string)
+const channel = computed(() => channelStore.getChannel(Number(channelId.value)))
+const theme = computed(() => channel.value?.theme)
+
+// Le bouton "Modify" (modération) est réservé au créateur du channel
+const currentUser = computed(() => getUsernameFromToken(tokenStore.getToken()))
+const isCreator = computed(() => channel.value?.creator === currentUser.value)
+
 const showModifyMessage = ref(false)
-const modify = ref(false)
+const modifying = ref(false)
 const error = ref<string | null>(null)
-const route = useRoute();
-const id = ref(route.params.id as string);
-const channelStore = useChannelStore();
 
-const test: number = +id.value
-const channel = channelStore.getChannel(test);
-const theme = channel?.theme
-
-watch(
-    () => route.params.id as string,
-    (newId) => { id.value = newId }
-)
-
-const openModifyMessage = () => { showModifyMessage.value = true }
-
-const modifyMessage = async (mesage : Message) =>{
-    console.log(mesage)
-    const imgRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
-    mesage.content.type = imgRegex.test(mesage.content.value) ? "Image" : "Text";
-
-    modify.value = true
-    error.value = null
-
-    try {
-        const token = tokenStore.getToken()
-        const response = await fetch('https://edu.tardigrade.land/msg/protected/channel/'+ id.value +'/message/moderate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(mesage)
-        })
-        if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.message || `Erreur ${response.status}`)
-        }
-    } catch (e: unknown) {
-        error.value = e instanceof Error ? e.message : 'Error during connection'
-    } finally {
-        modify.value = false
-    }
-    showModifyMessage.value = false
+const formatTime = (timestamp: Date) => {
+  const date = new Date(timestamp)
+  const now = new Date()
+  if (date.getDate() !== now.getDate()) return date.toLocaleString()
+  return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
+const imgRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i
+
+const modifyMessage = async (message: Message) => {
+  message.content.type = imgRegex.test(message.content.value) ? 'Image' : 'Text'
+  modifying.value = true
+  error.value = null
+  try {
+    await apiModerateMessage(channelId.value, message)
+    showModifyMessage.value = false
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : 'Error moderating message'
+  } finally {
+    modifying.value = false
+  }
+}
 </script>
 
 <template>
-    <div class="message-item">
-        <p>{{ data.author }}</p>
-        <p v-if="new Date(data.timestamp).getDate() != new Date(Date.now()).getDate()" class="time">{{ new Date(data.timestamp).toLocaleString() }}</p>
-        <p v-else class="time">{{ new Date(data.timestamp).getHours() + ":" + new Date(data.timestamp).getMinutes()}}</p>
-        <p v-if="data.content.type == 'Text'">{{ data.content.value }}</p>
-        <img v-else :src="data.content.value" />
-        <button class="action-btn" @click="openModifyMessage" :disabled="modify">
-            {{ modify ? '...' : 'Modify' }}
-        </button>
-        <p v-if="error" class="error">{{ error }}</p>
-        <ModifyMessage v-if="showModifyMessage" @confirm="modifyMessage" @close="showModifyMessage = false" :data="data"/>
-    </div>
+  <div
+    class="message-item"
+    :style="{
+      color: theme?.text_color,
+      borderColor: theme?.accent_color,
+      background: `linear-gradient(to bottom, ${theme?.primary_color_dark ?? '#e8e8e8'}, #f3f3f3)`,
+    }"
+  >
+    <p class="author" :style="{ color: theme?.accent_text_color }">{{ data.author }}</p>
+    <p class="time">{{ formatTime(data.timestamp) }}</p>
+
+    <p v-if="data.content.type === 'Text'">{{ data.content.value }}</p>
+    <img v-else :src="data.content.value" :style="{ borderColor: theme?.accent_color }" />
+
+    <!-- Bouton modération : réservé au créateur -->
+    <button
+      v-if="isCreator"
+      class="btn btn-ghost modify-btn"
+      @click="showModifyMessage = true"
+      :disabled="modifying"
+    >
+      {{ modifying ? '…' : 'Moderate' }}
+    </button>
+
+    <p v-if="error" class="error-text">{{ error }}</p>
+
+    <ModifyMessage
+      v-if="showModifyMessage"
+      :data="data"
+      @confirm="modifyMessage"
+      @close="showModifyMessage = false"
+    />
+  </div>
 </template>
 
 <style scoped>
-:root {
-  --sky-blue: #cfe9ff;
-  --deep-sky: #87cfff;
-  --gold: #d4af37;
-  --gold-light: #f5d76e;
-  --white-marble: #f8f8f8;
-  --black: #111;
+.message-item {
+  margin: 15px 0;
+  padding: 15px 20px;
+  border: 2px solid;
+  border-radius: 15px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: transform 0.2s ease;
 }
-/* ============================= */ /* STYLE GLOBAL COMMUN */ /* ============================= */ 
-.message-item {   
-    font-family: 'Cinzel', serif;   
-    color: v-bind('theme?.text_color'); } 
-/* ============================= */ /* AFFICHAGE D’UN MESSAGE */ /* ============================= */ 
-.message-item {   
-    margin: 15px 0;   
-    padding: 15px 20px;   
-    border: 2px solid v-bind('theme?.accent_color');   
-    border-radius: 15px;   
-    background: linear-gradient(to bottom, v-bind('theme?.primary_color_dark'), #f3f3f3);   
-    box-shadow: 0 6px 12px rgba(0,0,0,0.1);   
-    max-width: 500px;   
-    margin-left: auto;   
-    margin-right: auto;   
-    transition: transform 0.2s ease; } 
-.message-item:hover {   
-    transform: scale(1.02); } 
-.message-item p {   
-    margin: 5px 0;   
-    word-wrap: break-word; } 
-.message-item p:first-child {   
-    color: v-bind('theme?.accent_text_color');   
-    font-weight: bold;   
-    font-size: 1rem; } 
-.message-item img {   
-    display: block;  
-    max-width: 100%;   
-    border-radius: 10px;   
-    border: 2px solid v-bind('theme?.accent_color');   
-    margin-top: 10px; } 
-/* ============================= */ /* TIMESTAMP */ /* ============================= */ 
-.message-item time {   
-    display: block;   
-    font-size: 0.8rem;   
-    color: #666;   
-    margin-bottom: 5px;   
-    text-align: right; }
+.message-item:hover { transform: scale(1.02); }
+
+.message-item p { margin: 5px 0; word-wrap: break-word; }
+
+.author { font-weight: bold; font-size: 1rem; }
+
+.time {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 5px;
+  text-align: right;
+}
+
+.message-item img {
+  display: block;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 2px solid;
+  margin-top: 10px;
+}
+
+.modify-btn {
+  margin-top: 8px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  border-radius: var(--radius-sm);
+}
 </style>

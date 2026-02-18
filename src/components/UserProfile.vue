@@ -2,20 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { useStore } from '@/ts/store'
 import { getUsernameFromToken } from '@/ts/saveload'
+import { apiGetUsersMeta, apiSaveUserMeta } from '@/ts/api'
 import ModifyProfileModal from '@/modals/ModifyProfileModal.vue'
-
-interface UserMeta {
-  username: string
-  display_name: string
-  img: string
-  status: string
-}
+import type { UserMeta } from '@/types/userType'
 
 const store = useStore()
-const token = store.getToken()
-const username = getUsernameFromToken(token)
+const username = getUsernameFromToken(store.getToken())
 
-// Valeurs par défaut : chaînes vides (jamais null/undefined)
 const user = ref<UserMeta>({
   username: username ?? '?',
   display_name: '',
@@ -24,87 +17,64 @@ const user = ref<UserMeta>({
 })
 
 const loading = ref(false)
-const saving  = ref(false)
-const error   = ref<string | null>(null)
+const saving = ref(false)
+const error = ref<string | null>(null)
 const showEdit = ref(false)
 
-// ── Chargement du profil ──────────────────────────────────────────────────────
 const loadProfile = async () => {
   if (!username) return
-  loading.value = true
-  error.value   = null
-  try {
-    const resp = await fetch(
-      `https://edu.tardigrade.land/msg/protected/user/meta?users=${encodeURIComponent(username)}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
-    if (!resp.ok) throw new Error(`Erreur ${resp.status}`)
 
-    const data = await resp.json()
-    if (Array.isArray(data) && data.length > 0) {
-      const d = data[0]
-      user.value = {
-        username:     d.username     ?? username,
-        display_name: d.display_name ?? '',
-        img:          d.img          ?? '',
-        status:       d.status       ?? '',
-      }
+  loading.value = true
+  error.value = null
+
+  try {
+    const data = await apiGetUsersMeta([username])
+    const d = data[0]
+
+    if (!d) return
+
+    user.value = {
+      username: d.username ?? username,
+      display_name: d.display_name ?? '',
+      img: d.img ?? '',
+      status: d.status ?? '',
     }
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Erreur lors du chargement'
+    error.value = e instanceof Error ? e.message : 'Error loading profile'
   } finally {
     loading.value = false
   }
 }
 
-onMounted(loadProfile)
 
-// ── Sauvegarde du profil ──────────────────────────────────────────────────────
-// L'API exige TOUJOURS tous les champs (dont display_name).
-// On fusionne les nouvelles valeurs avec les valeurs actuelles pour ne jamais
-// omettre un champ.
+
 const onConfirm = async (payload: Partial<UserMeta>) => {
-  if (!token) return
   saving.value = true
-  error.value  = null
+  error.value = null
   try {
-    // Fusion : si le champ n'a pas été modifié dans la modal, on garde l'existant
     const body: UserMeta = {
-      username:     user.value.username,
+      username: user.value.username,
       display_name: payload.display_name ?? user.value.display_name,
-      img:          payload.img          ?? user.value.img,
-      status:       payload.status       ?? user.value.status,
+      img: payload.img ?? user.value.img,
+      status: payload.status ?? user.value.status,
     }
-
-    const resp = await fetch('https://edu.tardigrade.land/msg/protected/user/meta', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!resp.ok) {
-      const text = await resp.text()
-      throw new Error(text || `Erreur ${resp.status}`)
-    }
-
-    // Mise à jour locale
+    await apiSaveUserMeta(body)
     user.value = body
     showEdit.value = false
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : "Erreur lors de l'enregistrement"
+    error.value = e instanceof Error ? e.message : 'Error saving profile'
   } finally {
     saving.value = false
   }
 }
+
+onMounted(loadProfile)
 </script>
 
 <template>
   <div class="user-profile">
 
-    <div v-if="error" class="error-msg">{{ error }}</div>
+    <div v-if="error" class="error-text">{{ error }}</div>
 
     <div class="profile-card" :class="{ 'is-loading': loading }">
       <div class="avatar-wrapper">
@@ -116,17 +86,17 @@ const onConfirm = async (payload: Partial<UserMeta>) => {
       </div>
 
       <div class="profile-info">
-        <p class="display-name">{{ user.display_name || user.username || 'Utilisateur' }}</p>
+        <p class="display-name">{{ user.display_name || user.username || 'User' }}</p>
         <p class="username">@{{ user.username }}</p>
         <p class="status">
           <span class="status-dot"></span>
-          {{ user.status || 'Aucun statut' }}
+          {{ user.status || 'No status' }}
         </p>
       </div>
     </div>
 
-    <button class="edit-btn" @click="showEdit = true" :disabled="saving || loading">
-      {{ saving ? '⏳ Sauvegarde…' : '✏️ Modifier le profil' }}
+    <button class="btn btn-secondary edit-btn" @click="showEdit = true" :disabled="saving || loading">
+      {{ saving ? '⏳ Saving…' : '✏️ Edit profile' }}
     </button>
 
     <ModifyProfileModal
@@ -135,29 +105,15 @@ const onConfirm = async (payload: Partial<UserMeta>) => {
       @confirm="onConfirm"
       @close="showEdit = false"
     />
-
   </div>
 </template>
 
 <style scoped>
 .user-profile {
-  --gold: #d4af37;
-  --gold-light: #f5d76e;
-  --black: #111;
-  font-family: 'Cinzel', serif;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-}
-
-.error-msg {
-  color: #c0392b;
-  font-size: 0.78rem;
-  background: #fff0f0;
-  border-left: 3px solid #c0392b;
-  padding: 6px 10px;
-  border-radius: 4px;
 }
 
 .profile-card {
@@ -179,7 +135,7 @@ const onConfirm = async (payload: Partial<UserMeta>) => {
 .avatar-placeholder {
   width: 52px;
   height: 52px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   border: 2px solid var(--gold);
   object-fit: cover;
 }
@@ -201,23 +157,17 @@ const onConfirm = async (payload: Partial<UserMeta>) => {
   right: 2px;
   width: 11px;
   height: 11px;
-  background: #27ae60;
+  background: var(--success);
   border: 2px solid #fff;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
 }
 
-.profile-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
+.profile-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
 .display-name {
   margin: 0;
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--black);
   letter-spacing: 0.5px;
   white-space: nowrap;
   overflow: hidden;
@@ -236,7 +186,7 @@ const onConfirm = async (payload: Partial<UserMeta>) => {
 .status {
   margin: 4px 0 0;
   font-size: 0.72rem;
-  color: #666;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -249,35 +199,13 @@ const onConfirm = async (payload: Partial<UserMeta>) => {
   flex-shrink: 0;
   width: 7px;
   height: 7px;
-  background: #27ae60;
-  border-radius: 50%;
+  background: var(--success);
+  border-radius: var(--radius-full);
 }
 
 .edit-btn {
   width: 100%;
-  padding: 9px 14px;
-  font-family: 'Cinzel', serif;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  color: var(--black);
-  background: linear-gradient(to bottom, #fff, #f0f0f0);
-  border: 1.5px solid var(--gold);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(212, 175, 55, 0.12);
-}
-
-.edit-btn:hover:not(:disabled) {
-  background: linear-gradient(to bottom, var(--gold-light), var(--gold));
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
-  transform: translateY(-1px);
-}
-
-.edit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  justify-content: center;
+  border-radius: var(--radius-sm);
 }
 </style>

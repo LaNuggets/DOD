@@ -2,21 +2,28 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import ConfirmModal from '@/modals/ConfirmModal.vue'
 import CreateChannelModal from '@/modals/CreateChannelModal.vue'
-import type { Channel } from '@/types/channel'
 import { useStore } from '@/ts/store'
 import { useChannelStore } from '@/ts/channelStore'
+import { getUsernameFromToken } from '@/ts/saveload'
+import { apiGetChannels, apiDeleteChannel } from '@/ts/api'
 
 const tokenStore = useStore()
 const channelStore = useChannelStore()
 const channels = computed(() => channelStore.channels)
+
 const loading = ref(false)
 const error = ref<string | null>(null)
 const deletingId = ref<number | null>(null)
 const showDeleteChannel = ref<number | null>(null)
 const showCreateChannel = ref(false)
-
 const channelsRef = ref<HTMLElement | null>(null)
-// Avtivate horizontal scroll
+
+// L'utilisateur connecté (extrait du token)
+const currentUser = computed(() => getUsernameFromToken(tokenStore.getToken()))
+
+// Un channel est supprimable uniquement par son créateur
+const isCreator = (creatorUsername: string) => creatorUsername === currentUser.value
+
 const handleWheel = (e: WheelEvent) => {
   if (e.deltaY !== 0) {
     e.preventDefault()
@@ -28,14 +35,8 @@ const fetchChannels = async () => {
   loading.value = true
   error.value = null
   try {
-    const token = tokenStore.getToken()
-    const response = await fetch('https://edu.tardigrade.land/msg/protected/user/channels', {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    if (!response.ok) throw new Error(`Error ${response.status}: Failed to fetch channels`)
-    const fetchedChannels = (await response.json()) as Channel[]
-    channelStore.setChannels(fetchedChannels)
+    const fetched = await apiGetChannels()
+    channelStore.setChannels(fetched)
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error fetching channels'
   } finally {
@@ -53,16 +54,7 @@ const deleteChannel = async (channelId: number) => {
   deletingId.value = channelId
   showDeleteChannel.value = null
   try {
-    const token = tokenStore.getToken()
-    const response = await fetch(`https://edu.tardigrade.land/msg/protected/channel/${channelId}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    if (!response.ok) {
-      throw new Error(response.status === 401
-        ? 'You do not have permission to delete this channel'
-        : `Error ${response.status}: Failed to delete channel`)
-    }
+    await apiDeleteChannel(channelId)
     channelStore.removeChannel(channelId)
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error deleting channel'
@@ -71,33 +63,25 @@ const deleteChannel = async (channelId: number) => {
   }
 }
 
-const onChannelCreated = async () => {
-  await fetchChannels()
-}
-
 const emit = defineEmits<{ 'open-split': [id: string] }>()
 
-// Attach listener when the doom is fully charged
 watch(channelsRef, (el) => {
-  if (el) {
-    el.addEventListener('wheel', handleWheel, { passive: false })
-  }
+  if (el) el.addEventListener('wheel', handleWheel, { passive: false })
 })
 
 onMounted(() => {
   fetchChannels()
   channelsRef.value?.addEventListener('wheel', handleWheel, { passive: false })
-  })
+})
 
 onUnmounted(() => {
   channelsRef.value?.removeEventListener('wheel', handleWheel)
 })
-
 </script>
 
 <template>
   <div class="channel-list">
-    <p v-if="loading" class="status">Loading channels...</p>
+    <p v-if="loading" class="status">Loading channels…</p>
     <p v-if="error" class="status error">{{ error }}</p>
 
     <div v-if="!loading && channels.length === 0" class="status empty">
@@ -121,7 +105,9 @@ onUnmounted(() => {
           <span class="channel-name">{{ channel.name }}</span>
         </RouterLink>
 
+        <!-- Bouton suppression : seulement visible si l'utilisateur est le créateur -->
         <button
+          v-if="isCreator(channel.creator)"
           class="delete-btn"
           @click="openDeleteConfirm(channel.id, $event)"
           :disabled="deletingId === channel.id"
@@ -131,18 +117,13 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <!-- Message si vide -->
-      <div v-if="channels.length === 0" class="status empty">
-        No channels found. Create one to get started!
-      </div>
-
       <!-- Bouton créer un channel -->
       <div class="channel-item-wrapper">
-        <button class="channel-item new-channel-item" @click="showCreateChannel = true" title="Créer un channel">
+        <button class="channel-item new-channel-item" @click="showCreateChannel = true" title="Create a channel">
           <div class="channel-img new-channel-icon">
             <span>＋</span>
           </div>
-          <span class="channel-name">Nouveau</span>
+          <span class="channel-name">New</span>
         </button>
       </div>
     </div>
@@ -150,7 +131,7 @@ onUnmounted(() => {
 
   <ConfirmModal
     v-if="showDeleteChannel !== null"
-    :message="'Are you sure you want to delete this channel?'"
+    message="Are you sure you want to delete this channel?"
     @confirm="deleteChannel(showDeleteChannel!)"
     @close="showDeleteChannel = null"
   />
@@ -158,31 +139,18 @@ onUnmounted(() => {
   <CreateChannelModal
     v-if="showCreateChannel"
     @close="showCreateChannel = false"
-    @created="onChannelCreated"
+    @created="fetchChannels"
   />
 </template>
 
 <style scoped>
-/* =========================================
-   VARIABLES
-   ========================================= */
 .channel-list {
-  --gold: #d4af37;
-  --gold-light: #f5d76e;
-  --white-marble: #f8f8f8;
-  --sky: #dff0ff;
-  --black: #111;
-
   width: 100%;
   flex-shrink: 0;
   background: linear-gradient(to bottom, var(--sky), var(--white-marble));
   border-bottom: 3px solid var(--gold);
-  font-family: 'Cinzel', serif;
 }
 
-/* =========================================
-   BARRE DE CHANNELS (scroll horizontal)
-   ========================================= */
 .channels {
   display: flex;
   gap: 20px;
@@ -191,13 +159,9 @@ onUnmounted(() => {
   padding: 16px 24px;
   scroll-behavior: smooth;
   align-items: flex-start;
-  
-  /* For firefox */
   scrollbar-width: thin;
   scrollbar-color: var(--gold) var(--white-marble);
-
   white-space: nowrap;
-  /* Scroll for mobile */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -207,9 +171,6 @@ onUnmounted(() => {
   border-radius: 10px;
 }
 
-/* =========================================
-   CHANNEL ITEM
-   ========================================= */
 .channel-item-wrapper {
   display: flex;
   flex-direction: column;
@@ -230,8 +191,8 @@ onUnmounted(() => {
   border-radius: 50px 50px 12px 12px;
   border: 2px solid var(--gold);
   background: linear-gradient(to bottom, var(--white-marble), #e8e8e8);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -254,18 +215,14 @@ onUnmounted(() => {
 
 .channel-item:hover {
   transform: translateY(-5px) scale(1.06);
-  box-shadow: 0 10px 22px rgba(212, 175, 55, 0.5);
+  box-shadow: var(--shadow-lg);
 }
 
-/* =========================================
-   BOUTON NOUVEAU CHANNEL
-   ========================================= */
 .new-channel-item {
   border-style: dashed;
   background: linear-gradient(to bottom, #fff, #f5f5f5);
   color: var(--gold);
 }
-
 .new-channel-item:hover {
   background: linear-gradient(to bottom, #fffde8, #fdf3c0);
   border-style: solid;
@@ -279,7 +236,6 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
 }
-
 .new-channel-icon span {
   font-size: 1.5rem;
   color: #fff;
@@ -287,9 +243,6 @@ onUnmounted(() => {
   font-weight: 300;
 }
 
-/* =========================================
-   IMAGE
-   ========================================= */
 .channel-img {
   width: 50px;
   height: 50px;
@@ -299,16 +252,12 @@ onUnmounted(() => {
   flex-shrink: 0;
   z-index: 1;
 }
-
 .channel-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* =========================================
-   NOM DU CHANNEL
-   ========================================= */
 .channel-name {
   font-size: 0.65rem;
   text-align: center;
@@ -319,40 +268,31 @@ onUnmounted(() => {
   z-index: 1;
 }
 
-/* =========================================
-   BOUTON SUPPRESSION
-   ========================================= */
 .delete-btn {
   background: none;
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 3px 8px;
   cursor: pointer;
   font-size: 0.8rem;
   opacity: 0.6;
   transition: opacity 0.2s ease, border-color 0.2s ease;
 }
-
 .delete-btn:hover:not(:disabled) {
   opacity: 1;
-  border-color: #e74c3c;
+  border-color: var(--error);
 }
-
 .delete-btn:disabled {
   cursor: not-allowed;
   opacity: 0.3;
 }
 
-/* =========================================
-   ÉTATS
-   ========================================= */
 .status {
   text-align: center;
   padding: 12px 20px;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-muted);
 }
-
-.status.error { color: #c0392b; }
+.status.error { color: var(--error); }
 .status.empty { color: #999; font-style: italic; }
 </style>

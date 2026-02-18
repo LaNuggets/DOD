@@ -18,12 +18,12 @@ const closeSplit = () => {
   <div class="app-layout">
     <ChannelList @open-split="openSplit" />
     <div class="app-content">
-      <!-- Pane principal — géré par le router -->
+      <!-- Main view -->
       <div class="pane">
         <router-view :key="$route.fullPath"/>
       </div>
 
-      <!-- Pane secondaire — monté manuellement -->
+      <!-- split view -->
       <div class="pane pane--secondary" v-if="secondChannelId">
         <button class="close-split" @click="closeSplit" title="Close split view">✕</button>
         <Message :forced-channel-id="secondChannelId" :key="secondChannelId" />
@@ -44,7 +44,7 @@ const closeSplit = () => {
   flex: 1;
   overflow: hidden;
   display: flex;
-  flex-direction: row; /* les deux panes côte à côte */
+  flex-direction: row;
 }
 
 .pane {

@@ -63,7 +63,7 @@ export default router
  * @param {string} token - The user current token.
  * @return {bool} True if the token is valid, else false.
  */
-const isTokenValid = async (token: string): bool => {
+const isTokenValid = async (token: string | null): bool => {
 
 	if(!token)
 		return false;

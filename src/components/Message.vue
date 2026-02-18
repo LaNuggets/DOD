@@ -187,7 +187,7 @@ const doBanUser = async (username: string) => {
       <button class="action-btn" @click="openMembers" :disabled="membersLoading">
         {{ membersLoading ? '...' : '👥 Members' }}
       </button>
-	  <ModifyChannel :channel-id="channelId" />
+	    <ModifyChannel :channel-id="channelId" />
     </div>
 
     <p v-if="error || membersError" class="error">{{ error || membersError }}</p>

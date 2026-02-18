@@ -9,4 +9,9 @@
 
 </template>
 
-<style scoped></style>
+<style scoped>
+header {
+  text-align: center;
+  font-weight: bold;
+}
+</style>

@@ -97,7 +97,7 @@ const closeSplit = () => { secondChannelId.value = null }
 .close-split {
   position: absolute;
   top: 16px;
-  right: 16px;
+  right: 1px;
   z-index: 10;
   background: none;
   border: 1px solid #d4af37;

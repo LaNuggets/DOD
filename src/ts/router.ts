@@ -5,9 +5,6 @@ import NotFoundView from "@/views/NotFoundView.vue";
 import ModifyChannel from "@/components/ModifyChannel.vue";
 import { loadToken } from "@/ts/saveload.ts";
 import { createRouter, createWebHistory} from "vue-router";
-import CreateChannelView from "@/views/CreateChannelView.vue";
-
-// Set up the routes
 const routes = [
 		{
             path : "/",
@@ -26,11 +23,6 @@ const routes = [
             name : "Login",
             component : LoginView,
             
-        },
-        {
-            path: '/channel/create',
-            name : "Channel",
-            component : CreateChannelView
         },
 	    {
             path: '/channel/modify/:id',
@@ -81,11 +73,8 @@ const isTokenValid = async (token: string): bool => {
 	}
 }
 
-
-// Safe guard, cant access other pages if your not connected
 router.beforeEach(async (to, from) => {
 
-	// If there is a token and is valid, the user is connected
 	let token = loadToken();
 	const valid = await isTokenValid(token);
 
@@ -93,7 +82,6 @@ router.beforeEach(async (to, from) => {
 		return { name : 'Login' };
 	}
 
-	// If the user is already login redirect to home page
 	if(valid && to.name === 'Login') {
 		return { name: 'Home'};
 	}

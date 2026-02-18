@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import ConfirmModal from '@/modals/ConfirmModal.vue'
-import type { Channel }  from '@/types/channel';
+import CreateChannelModal from '@/modals/CreateChannelModal.vue'
+import type { Channel } from '@/types/channel'
 import { useStore } from '@/ts/store'
+import { useChannelStore } from '@/ts/channelStore'
 
 const tokenStore = useStore()
-// const channels = ref<Channel[]>([])
-const channels = computed(() => channelStore.channels);
+const channelStore = useChannelStore()
+const channels = computed(() => channelStore.channels)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const deletingId = ref<number | null>(null)
 const showDeleteChannel = ref<number | null>(null)
-import { useChannelStore } from '@/ts/channelStore';
-
-const channelStore = useChannelStore();
+const showCreateChannel = ref(false)
 
 const fetchChannels = async () => {
   loading.value = true
@@ -25,10 +25,8 @@ const fetchChannels = async () => {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     if (!response.ok) throw new Error(`Error ${response.status}: Failed to fetch channels`)
-    // channels.value = await response.json()
-    const fetchedChannels = (await response.json()) as Channel[];
-    channelStore.setChannels(fetchedChannels);
-
+    const fetchedChannels = (await response.json()) as Channel[]
+    channelStore.setChannels(fetchedChannels)
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error fetching channels'
   } finally {
@@ -56,13 +54,16 @@ const deleteChannel = async (channelId: number) => {
         ? 'You do not have permission to delete this channel'
         : `Error ${response.status}: Failed to delete channel`)
     }
-    // channels.value = channels.value.filter(c => c.id !== channelId)
-    channelStore.removeChannel(channelId);
+    channelStore.removeChannel(channelId)
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error deleting channel'
   } finally {
     deletingId.value = null
   }
+}
+
+const onChannelCreated = async () => {
+  await fetchChannels()
 }
 
 onMounted(() => { fetchChannels() })
@@ -73,11 +74,8 @@ onMounted(() => { fetchChannels() })
     <p v-if="loading" class="status">Loading channels...</p>
     <p v-if="error" class="status error">{{ error }}</p>
 
-    <div v-if="!loading && channels.length === 0" class="status empty">
-      No channels found. Create or join one to get started!
-    </div>
-
-    <div v-if="!loading && channels.length > 0" class="channels">
+    <div v-if="!loading" class="channels">
+      <!-- Channels existants -->
       <div
         v-for="channel in channels"
         :key="channel.id"
@@ -102,6 +100,21 @@ onMounted(() => { fetchChannels() })
           {{ deletingId === channel.id ? '…' : '🗑️' }}
         </button>
       </div>
+
+      <!-- Message si vide -->
+      <div v-if="channels.length === 0" class="status empty">
+        No channels found. Create one to get started!
+      </div>
+
+      <!-- Bouton créer un channel -->
+      <div class="channel-item-wrapper">
+        <button class="channel-item new-channel-item" @click="showCreateChannel = true" title="Créer un channel">
+          <div class="channel-img new-channel-icon">
+            <span>＋</span>
+          </div>
+          <span class="channel-name">Nouveau</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -110,6 +123,12 @@ onMounted(() => { fetchChannels() })
     :message="'Are you sure you want to delete this channel?'"
     @confirm="deleteChannel(showDeleteChannel!)"
     @close="showDeleteChannel = null"
+  />
+
+  <CreateChannelModal
+    v-if="showCreateChannel"
+    @close="showCreateChannel = false"
+    @created="onChannelCreated"
   />
 </template>
 
@@ -125,7 +144,7 @@ onMounted(() => { fetchChannels() })
   --black: #111;
 
   width: 100%;
-  flex-shrink: 0;   /* ne compresse jamais la navbar */
+  flex-shrink: 0;
   background: linear-gradient(to bottom, var(--sky), var(--white-marble));
   border-bottom: 3px solid var(--gold);
   font-family: 'Cinzel', serif;
@@ -141,6 +160,7 @@ onMounted(() => { fetchChannels() })
   overflow-y: hidden;
   padding: 16px 24px;
   scroll-behavior: smooth;
+  align-items: flex-start;
 }
 
 .channels::-webkit-scrollbar { height: 6px; }
@@ -176,6 +196,7 @@ onMounted(() => { fetchChannels() })
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 /* Stries de colonne antique */
@@ -196,6 +217,36 @@ onMounted(() => { fetchChannels() })
 .channel-item:hover {
   transform: translateY(-5px) scale(1.06);
   box-shadow: 0 10px 22px rgba(212, 175, 55, 0.5);
+}
+
+/* =========================================
+   BOUTON NOUVEAU CHANNEL
+   ========================================= */
+.new-channel-item {
+  border-style: dashed;
+  background: linear-gradient(to bottom, #fff, #f5f5f5);
+  color: var(--gold);
+}
+
+.new-channel-item:hover {
+  background: linear-gradient(to bottom, #fffde8, #fdf3c0);
+  border-style: solid;
+  box-shadow: 0 10px 22px rgba(212, 175, 55, 0.4);
+}
+
+.new-channel-icon {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold)) !important;
+  border-color: var(--gold) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.new-channel-icon span {
+  font-size: 1.5rem;
+  color: #fff;
+  line-height: 1;
+  font-weight: 300;
 }
 
 /* =========================================

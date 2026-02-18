@@ -9,7 +9,8 @@ import AddUserModal from '@/modals/AddUserModal.vue'
 import InfoModal from '@/modals/InfoModal.vue'
 import MembersModal from '@/modals/MembersModal.vue'
 import router from '@/ts/router'
-import type { Content, Message } from '@/types/message';
+import { getUsernameFromToken } from '@/ts/saveload'
+import type { Content, Message } from '@/types/messageType';
 
 
 let ws: WebSocket | null = null
@@ -88,18 +89,6 @@ watch(
 onUnmounted(() => ws?.close())
 
 const openAddUser = () => { showAddUser.value = true }
-
-const getUsernameFromToken = (token: string | null) => {
-    if (!token) return null
-    try {
-        const parts = token.split('.')
-        if (!parts[1] || parts.length < 2) return null
-        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
-        return payload.username || payload.preferred_username || payload.sub || payload.name || null
-    } catch {
-        return null
-    }
-}
 
 const openMembers = async () => {
     const id = route.params.id as string

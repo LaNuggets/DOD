@@ -3,7 +3,7 @@ import { useRoute } from "vue-router";
 import { ref } from 'vue';
 import { useStore } from '@/ts/store'
 import { watch } from 'vue';
-import type { Content } from '@/types/message';
+import type { Content } from '@/types/messageType';
 
 const message : Content = { type: '', value: '' }
 const tokenStore = useStore()

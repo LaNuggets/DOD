@@ -3,6 +3,7 @@ import ModifyMessage from '@/modals/ModifyMessage.vue';
 import { useStore } from '@/ts/store';
 import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useChannelStore } from '@/ts/channelStore';
 
 
 defineProps<{
@@ -27,6 +28,11 @@ const modify = ref(false)
 const error = ref<string | null>(null)
 const route = useRoute();
 const id = ref(route.params.id as string);
+const channelStore = useChannelStore();
+
+const test: number = +id.value
+const channel = channelStore.getChannel(test);
+const theme = channel?.theme
 
 watch(
     () => route.params.id as string,
@@ -94,14 +100,14 @@ const modifyMessage = async (mesage : Message) =>{
 /* ============================= */ /* STYLE GLOBAL COMMUN */ /* ============================= */ 
 .message-item {   
     font-family: 'Cinzel', serif;   
-    color: var(--black); } 
+    color: v-bind('theme?.text_color'); } 
 /* ============================= */ /* AFFICHAGE D’UN MESSAGE */ /* ============================= */ 
 .message-item {   
     margin: 15px 0;   
     padding: 15px 20px;   
-    border: 2px solid var(--gold);   
+    border: 2px solid v-bind('theme?.accent_color');   
     border-radius: 15px;   
-    background: linear-gradient(to bottom, var(--white-marble), #f3f3f3);   
+    background: linear-gradient(to bottom, v-bind('theme?.primary_color_dark'), #f3f3f3);   
     box-shadow: 0 6px 12px rgba(0,0,0,0.1);   
     max-width: 500px;   
     margin-left: auto;   
@@ -113,14 +119,14 @@ const modifyMessage = async (mesage : Message) =>{
     margin: 5px 0;   
     word-wrap: break-word; } 
 .message-item p:first-child {   
-    color: var(--gold);   
+    color: v-bind('theme?.accent_text_color');   
     font-weight: bold;   
     font-size: 1rem; } 
 .message-item img {   
     display: block;  
     max-width: 100%;   
     border-radius: 10px;   
-    border: 2px solid var(--gold);   
+    border: 2px solid v-bind('theme?.accent_color');   
     margin-top: 10px; } 
 /* ============================= */ /* TIMESTAMP */ /* ============================= */ 
 .message-item time {   

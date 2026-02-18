@@ -27,7 +27,7 @@ const baseTheme = {
 const form: ChannelNewMetaData = reactive({
   name: null,
   img: null,
-  theme: {}
+  theme: baseTheme
 });
 
 const colorInputs = reactive({ ...form.theme });
@@ -141,11 +141,11 @@ function closePopup() {
 
       <div class="field">
         <label>Channel theme colors :</label>
-        <input type="color" v-model="colorInputs.primary_color">Primary color</input>
-        <input type="color" v-model="colorInputs.primary_color_dark">Primary color dark</input>
-        <input type="color" v-model="colorInputs.accent_color">Accent color</input>
+        <input type="color" v-model="colorInputs.primary_color">Background color</input>
+        <input type="color" v-model="colorInputs.primary_color_dark">Message fade color</input>
+        <input type="color" v-model="colorInputs.accent_color">Message line color</input>
         <input type="color" v-model="colorInputs.text_color">Text color</input>
-        <input type="color" v-model="colorInputs.accent_text_color">Accent text color</input>
+        <input type="color" v-model="colorInputs.accent_text_color">Message author color</input>
       </div>
 
         <div class="buttons">

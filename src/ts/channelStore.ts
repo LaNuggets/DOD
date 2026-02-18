@@ -6,6 +6,11 @@ import type { Channel }  from '@/types/channel';
 export const useChannelStore = defineStore('channelStore', () => {
     const channels = ref<Channel[]>([]);
 
+    const getChannel = (id: number) => {
+      const ch = channels.value.find(c => c.id === id);
+      return ch
+    }
+
     const setChannels = (newChannels: Channel[]) => {
       channels.value = newChannels;
     }
@@ -26,6 +31,7 @@ export const useChannelStore = defineStore('channelStore', () => {
 
     return {
       channels,
+      getChannel,
       setChannels,
       updateChannel,
       removeChannel

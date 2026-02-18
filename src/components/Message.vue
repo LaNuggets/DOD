@@ -11,18 +11,25 @@ import MembersModal from '@/modals/MembersModal.vue'
 import router from '@/ts/router'
 import { getUsernameFromToken } from '@/ts/saveload'
 import type { Content, Message } from '@/types/messageType';
+import { useChannelStore } from '@/ts/channelStore';
 
 
-let ws: WebSocket | null = null
-const tokenStore = useStore()
+let ws: WebSocket | null = null;
+const tokenStore = useStore();
 const route = useRoute();
+const channelStore = useChannelStore();
 
-const props = defineProps<{ forcedChannelId?: string }>()
+const props = defineProps<{ forcedChannelId?: string }>();
 
 // if there is a props use it, otherwise, use url param
 const channelId = computed(() =>
   props.forcedChannelId ?? route.params.id as string
 )
+
+const test: number = +channelId.value
+const channel = channelStore.getChannel(test);
+const channelName = channel?.name
+const theme = channel?.theme
 
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -175,7 +182,7 @@ const doBanUser = async (username: string) => {
   <div class="channel-wrapper">
     <!-- Header collé sous le ChannelList -->
     <div class="channel-header">
-      <h1>Channel</h1>
+      <h1 v-bind:channelName> {{ channelName }}</h1>
       <button class="action-btn" @click="openAddUser" :disabled="adding">
         {{ adding ? '...' : '➕ Add user' }}
       </button>
@@ -297,6 +304,7 @@ const doBanUser = async (username: string) => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  background-color: v-bind('theme?.primary_color');
 }
 
 .chat-content::-webkit-scrollbar {
@@ -304,7 +312,7 @@ const doBanUser = async (username: string) => {
 }
 
 .chat-content::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, var(--gold), var(--gold-light));
+  background: linear-gradient(to bottom, var(--black), var(--gold-light));
   border-radius: 10px;
 }
 

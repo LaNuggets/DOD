@@ -39,11 +39,11 @@ const doConfirm = () => {
           </div>
 
           <div class="member-actions">
-            <!-- Quitter : disponible pour soi-même -->
+             <!-- Leave by my-self only  -->
             <button v-if="u === props.currentUser" class="btn btn-quit" @click="requestQuit(u)">
               Leave
             </button>
-            <!-- Bannir : réservé au créateur, sur les autres membres -->
+             <!-- Ban, only for creator -->
             <button
               v-else-if="props.currentUser === props.creator"
               class="btn btn-ban"

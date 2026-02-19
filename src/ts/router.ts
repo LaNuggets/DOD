@@ -12,11 +12,11 @@ const routes = [
     component: HomeView,
     children: [
       {
-        path: 'channel/:id/:id2?',
+        path: 'channel/:id',
         name: 'channel-details',
         components: {
-          default: Message,   // panneau gauche (ou unique)
-          secondary: Message, // panneau droit (split view)
+          default: Message,   // Left split (or main vue)
+          secondary: Message, // Right split (split view)
         },
       },
     ],
@@ -39,9 +39,11 @@ const router = createRouter({
 })
 
 /**
- * Vérifie si le token JWT est encore valide auprès de l'API.
- * Note : on évite d'importer api.ts ici pour éviter la dépendance circulaire
- * (router → api → store → router).
+ * Check if the token is valid
+ * 
+ * @async
+ * @param {string?} - The token to check
+ * @return {bool} - True if the token is valid, otherwise false
  */
 const isTokenValid = async (token: string | null): Promise<boolean> => {
   if (!token) return false
@@ -54,7 +56,7 @@ const isTokenValid = async (token: string | null): Promise<boolean> => {
       },
     })
     if (response.ok) {
-      // Profite de l'appel pour rafraîchir le token si l'API en renvoie un nouveau
+      // Extend token duration if the token is valid
       const data = await response.json().catch(() => null)
       if (data?.token) saveToken(data.token)
     }

@@ -1,14 +1,8 @@
-/**
- * api.ts — Couche d'accès API centralisée.
- * Aucun appel fetch ne doit se trouver dans les composants ou vues.
- * Chaque fonction retourne la donnée typée ou lève une Error.
- */
-
 import { useStore } from '@/ts/store'
 
 const BASE = 'https://edu.tardigrade.land/msg'
 
-// ── Helpers privés ──────────────────────────────────────────────────────────
+// ── Private helpers ──────────────────────────────────────────────────────────
 
 function getToken(): string {
   const store = useStore()
@@ -40,7 +34,7 @@ async function request<T>(
     throw new Error(message)
   }
 
-  // Certains endpoints retournent un body vide (200 sans JSON)
+  // Can return empty body
   const text = await response.text()
   return text ? JSON.parse(text) : (undefined as unknown as T)
 }

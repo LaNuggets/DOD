@@ -26,5 +26,5 @@ export interface ChannelNewMetaData {
   theme: Theme
 }
 
-// L'API retourne un simple number (l'ID du channel créé)
+// API return channel id
 export type CreateChannelResponse = number

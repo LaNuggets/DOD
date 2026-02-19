@@ -1,14 +1,9 @@
-/* ============================================================
-   BASE.CSS — DOD Global Design System
-   Importé une fois dans main.ts, disponible partout.
-   ============================================================ */
+/* Custom font */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;500&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Montserrat:wght@300;500&display=swap');
-
-/* ── Reset minimal ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Variables globales ── */
+/* Global var */
 :root {
   --gold:         #d4af37;
   --gold-light:   #f5d76e;

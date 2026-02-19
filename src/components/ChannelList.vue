@@ -18,10 +18,10 @@ const showDeleteChannel = ref<number | null>(null)
 const showCreateChannel = ref(false)
 const channelsRef = ref<HTMLElement | null>(null)
 
-// L'utilisateur connecté (extrait du token)
+// The current connected user
 const currentUser = computed(() => getUsernameFromToken(tokenStore.getToken()))
 
-// Un channel est supprimable uniquement par son créateur
+// Check if the user is the creator of the channel
 const isCreator = (creatorUsername: string) => creatorUsername === currentUser.value
 
 const handleWheel = (e: WheelEvent) => {
@@ -105,7 +105,7 @@ onUnmounted(() => {
           <span class="channel-name">{{ channel.name }}</span>
         </RouterLink>
 
-        <!-- Bouton suppression : seulement visible si l'utilisateur est le créateur -->
+         <!-- Only for creator -->
         <button
           v-if="isCreator(channel.creator)"
           class="delete-btn"
@@ -117,7 +117,7 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <!-- Bouton créer un channel -->
+       <!-- Create channel btn -->
       <div class="channel-item-wrapper">
         <button class="channel-item new-channel-item" @click="showCreateChannel = true" title="Create a channel">
           <div class="channel-img new-channel-icon">

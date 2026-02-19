@@ -18,7 +18,7 @@ const channelId = computed(() => route.params.id as string)
 const channel = computed(() => channelStore.getChannel(Number(channelId.value)))
 const theme = computed(() => channel.value?.theme)
 
-// Le bouton "Modify" (modération) est réservé au créateur du channel
+// Modify button only for creator
 const currentUser = computed(() => getUsernameFromToken(tokenStore.getToken()))
 const isCreator = computed(() => channel.value?.creator === currentUser.value)
 
@@ -65,7 +65,7 @@ const modifyMessage = async (message: Message) => {
     <p v-if="data.content.type === 'Text'">{{ data.content.value }}</p>
     <img v-else :src="data.content.value" :style="{ borderColor: theme?.accent_color }" />
 
-    <!-- Bouton modération : réservé au créateur -->
+     <!-- Moderate button only for creator -->
     <button
       v-if="isCreator"
       class="btn btn-ghost modify-btn"

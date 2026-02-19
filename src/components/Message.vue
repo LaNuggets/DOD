@@ -16,21 +16,21 @@ import router from '@/ts/router'
 
 const props = defineProps<{ forcedChannelId?: string }>()
 
-const tokenStore = useStore()
 const route = useRoute()
+const tokenStore = useStore()
 const channelStore = useChannelStore()
 
-// Utilise le prop si présent, sinon l'URL
+// Use porps if it existe, else use URL id
 const channelId = computed(() => props.forcedChannelId ?? route.params.id as string)
 
 const channel = computed(() => channelStore.getChannel(Number(channelId.value)))
 const channelName = computed(() => channel.value?.name)
 const theme = computed(() => channel.value?.theme)
 
-// Utilisateur connecté
+// The current connected user
 const currentUser = computed(() => getUsernameFromToken(tokenStore.getToken()))
 
-// Le bouton "Add user" et "Modify channel" sont réservés au créateur
+// Check if the user is the creator of the channel
 const isCreator = computed(() => channel.value?.creator === currentUser.value)
 
 const loading = ref(false)
@@ -142,7 +142,7 @@ const doBanUser = async (username: string) => {
     <div class="channel-header">
       <h1>{{ channelName }}</h1>
 
-      <!-- "Add user" : réservé au créateur du channel -->
+       <!-- Only for creator -->
       <button
         v-if="isCreator"
         class="btn btn-secondary"
@@ -152,7 +152,7 @@ const doBanUser = async (username: string) => {
         {{ adding ? '…' : '➕ Add user' }}
       </button>
 
-      <!-- "Members" : accessible à tous les membres -->
+       <!-- For evrey one -->
       <button
         class="btn btn-secondary"
         @click="openMembers"
@@ -161,7 +161,7 @@ const doBanUser = async (username: string) => {
         {{ membersLoading ? '…' : '👥 Members' }}
       </button>
 
-      <!-- "Modify channel" : réservé au créateur -->
+       <!-- only for creator -->
       <ModifyChannel v-if="isCreator" :channel-id="channelId" />
     </div>
 

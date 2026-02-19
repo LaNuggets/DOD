@@ -13,26 +13,24 @@ const closeSplit = () => { secondChannelId.value = null }
 <template>
   <div class="app-layout">
 
-    <!-- Navbar channels en haut -->
+     <!-- Channels navbar -->
     <ChannelList @open-split="openSplit" />
 
-    <!-- Corps : sidebar profil + contenu -->
+     <!-- Profile sideBar -->
     <div class="app-body">
 
-      <!-- Sidebar profil à gauche -->
       <aside class="app-sidebar">
         <UserProfile />
       </aside>
 
-      <!-- Zone principale -->
+       <!-- Main vue -->
       <div class="app-content">
 
-        <!-- Vue principale (router) -->
         <div class="pane">
           <router-view :key="$route.fullPath" />
         </div>
 
-        <!-- Vue split (optionnelle) -->
+        <!-- Splited vue-->
         <div class="pane pane--secondary" v-if="secondChannelId">
           <button class="close-split" @click="closeSplit" title="Fermer la vue split">✕</button>
           <Message :forced-channel-id="secondChannelId" :key="secondChannelId" />

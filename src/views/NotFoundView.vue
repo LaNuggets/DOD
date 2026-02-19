@@ -19,8 +19,6 @@
 
 <style scoped>
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;500&display=swap');
-
 .page {
   --gold: #d4af37;
   --white: white;
